@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+supabase
+python-dotenv
+python-multipart
+pydantic
+httpx
+openai
+Pillow
+rembg
+pydub
+qrcode
+python-jose[cryptography]
+passlib[bcrypt]
