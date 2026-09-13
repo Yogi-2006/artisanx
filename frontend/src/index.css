@@ -1,1 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-brand-neon: #ccff00;
+  --color-brand-dark: #111111;
+  --color-brand-bg: #f5f5f7;
+  --font-sans: 'Inter', sans-serif;
+}
+
+body {
+  @apply bg-brand-bg text-brand-dark font-sans;
+}
+
+/* Custom horizontal scrollbar hiding for clean UI */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility mobile-shell-width {
+  width: 100%;
+  max-width: 430px;
+  margin-left: auto;
+  margin-right: auto;
+}

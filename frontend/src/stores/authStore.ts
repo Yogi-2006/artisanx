@@ -1,16 +1,163 @@
 import { create } from 'zustand';
-import { User } from '../types/user';
+import api from '../lib/api';
+
+interface User {
+    id: string;
+    email?: string;
+    phone?: string;
+    role?: 'artisan' | 'buyer' | 'facilitator';
+    [key: string]: any;
+}
 
 interface AuthState {
     user: User | null;
     token: string | null;
-    setAuth: (user: User, token: string) => void;
+    isLoading: boolean;
+    isAuthenticated: boolean;
+    error: string | null;
+    clearError: () => void;
+    sendOtp: (phone: string) => Promise<void>;
+    verifyOtp: (phone: string, token: string) => Promise<void>;
+    loginWithEmail: (email: string, password: string) => Promise<void>;
+    registerWithEmail: (email: string, password: string, role?: 'artisan' | 'buyer' | 'facilitator') => Promise<void>;
+    setRole: (role: 'artisan' | 'buyer' | 'facilitator') => Promise<void>;
     logout: () => void;
+    checkAuth: (isRetry?: boolean) => Promise<void>;
+    language: string;
+    setLanguage: (lang: string) => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
     user: null,
-    token: null,
-    setAuth: (user, token) => set({ user, token }),
-    logout: () => set({ user: null, token: null }),
+    token: localStorage.getItem('auth_token'),
+    isLoading: false,
+    isAuthenticated: !!localStorage.getItem('auth_token'),
+    error: null,
+    language: localStorage.getItem('language') || 'en',
+
+    setLanguage: (lang) => {
+        localStorage.setItem('language', lang);
+        set({ language: lang });
+    },
+
+    clearError: () => set({ error: null }),
+
+    sendOtp: async (phone) => {
+        set({ isLoading: true, error: null });
+        try {
+            await api.post('/auth/send-otp', { phone });
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Failed to send OTP' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    verifyOtp: async (phone, token) => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data } = await api.post('/auth/verify-otp', { phone, otp: token });
+            localStorage.setItem('auth_token', data.access_token);
+            if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+            set({ user: data.user, token: data.access_token, isAuthenticated: true });
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Failed to verify OTP' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    loginWithEmail: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data } = await api.post('/auth/login', { email, password });
+            localStorage.setItem('auth_token', data.access_token);
+            if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+            set({ user: data.user, token: data.access_token, isAuthenticated: true });
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Login failed' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    registerWithEmail: async (email, password, role) => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data } = await api.post('/auth/register', { email, password });
+            
+            if (data.access_token) {
+                localStorage.setItem('auth_token', data.access_token);
+                if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+                set({ user: data.user, token: data.access_token, isAuthenticated: true });
+            } else {
+                set({ user: data.user });
+            }
+            
+            if (role) {
+                const roleData = await api.post('/auth/set-role', { role });
+                set({ user: roleData.data });
+            }
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Registration failed' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    setRole: async (role) => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data } = await api.post('/auth/set-role', { role });
+            set({ user: data });
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Failed to set role' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    logout: () => {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        set({ user: null, token: null, isAuthenticated: false });
+    },
+
+    checkAuth: async (isRetry = false) => {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            set({ isAuthenticated: false });
+            return;
+        }
+        
+        set({ isLoading: true });
+        try {
+            const { data } = await api.get('/auth/me');
+            set({ user: data, isAuthenticated: true });
+        } catch (error: any) {
+            if (error.response?.status === 401 && !isRetry) {
+                const refreshToken = localStorage.getItem('refresh_token');
+                if (refreshToken) {
+                    try {
+                        const { data } = await api.post('/auth/refresh', { refresh_token: refreshToken });
+                        localStorage.setItem('auth_token', data.access_token);
+                        if (data.refresh_token) localStorage.setItem('refresh_token', data.refresh_token);
+                        set({ token: data.access_token });
+                        
+                        // Retry checkAuth once
+                        const store = get();
+                        return store.checkAuth(true);
+                    } catch (refreshError) {
+                        // Refresh failed, proceed to logout
+                    }
+                }
+            }
+            
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            set({ user: null, token: null, isAuthenticated: false });
+        } finally {
+            set({ isLoading: false });
+        }
+    }
 }));

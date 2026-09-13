@@ -23,7 +23,7 @@ i18n.use(initReactI18next).init({
     mr: { translation: mr },
     ur: { translation: ur }
   },
-  lng: 'en',
+  lng: localStorage.getItem('language') || 'en',
   fallbackLng: 'en',
   interpolation: { escapeValue: false }
 });

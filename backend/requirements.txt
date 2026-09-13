@@ -12,3 +12,7 @@ pydub
 qrcode
 python-jose[cryptography]
 passlib[bcrypt]
+opencv-python-headless
+numpy
+google-genai
+

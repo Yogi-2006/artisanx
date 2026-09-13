@@ -1,5 +1,6 @@
 from pydantic import BaseModel
+from typing import Optional
 
-class DashboardDataResponse(BaseModel):
-    total_artisans: int
-    pending_reviews: int
+class ReviewSubmitRequest(BaseModel):
+    review_status: str
+    notes: Optional[str] = None

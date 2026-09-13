@@ -1,13 +1,21 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '../../stores/authStore';
+import { useEffect } from 'react';
 
 export function LanguageSwitcher() {
     const { i18n } = useTranslation();
+    const { language, setLanguage } = useAuthStore();
     
+    useEffect(() => {
+        if (i18n.language !== language) {
+            i18n.changeLanguage(language);
+            document.documentElement.dir = language === 'ur' ? 'rtl' : 'ltr';
+            document.documentElement.lang = language;
+        }
+    }, [language, i18n]);
+
     const changeLanguage = (lng: string) => {
-        i18n.changeLanguage(lng);
-        document.documentElement.dir = lng === 'ur' ? 'rtl' : 'ltr';
-        document.documentElement.lang = lng;
+        setLanguage(lng);
     };
 
     const languages = [
@@ -23,7 +31,12 @@ export function LanguageSwitcher() {
     ];
 
     return (
-        <select onChange={(e) => changeLanguage(e.target.value)} value={i18n.language} className="border rounded p-1 text-sm">
+        <select 
+            onChange={(e) => changeLanguage(e.target.value)} 
+            value={language} 
+            className="border border-gray-200 rounded-2xl p-2 text-sm bg-white text-gray-900 focus:ring-2 focus:ring-brand-dark focus:border-transparent outline-none transition-all shadow-sm"
+            aria-label="Select Language"
+        >
             {languages.map(l => <option key={l.code} value={l.code}>{l.label}</option>)}
         </select>
     );

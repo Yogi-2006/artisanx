@@ -1,11 +1,20 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
 
-class AICatalogueGenerateRequest(BaseModel):
-    transcript_id: str
+class CatalogueGenerateRequest(BaseModel):
+    transcript: str
+    category: Optional[str] = None
+    language: Optional[str] = "en"
 
-class AICatalogueGenerateResponse(BaseModel):
+class CatalogueGenerateResponse(BaseModel):
     title: str
     description: str
     category: str
     tags: List[str]
+    materials: List[str]
+    care_instructions: str
+    estimated_production_time: str
+    dimensions: Optional[str] = None
+
+class CatalogueSaveRequest(CatalogueGenerateResponse):
+    pass

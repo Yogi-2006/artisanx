@@ -12,12 +12,13 @@ from enquiries.router import router as enquiries_router
 from facilitator.router import router as facilitator_router
 from guidance.router import router as guidance_router
 from notifications.router import router as notifications_router
+from market_intelligence.router import router as market_intelligence_router
 
 app = FastAPI(title="ArtisanX API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,6 +36,7 @@ app.include_router(enquiries_router)
 app.include_router(facilitator_router)
 app.include_router(guidance_router)
 app.include_router(notifications_router)
+app.include_router(market_intelligence_router)
 
 @app.get("/health")
 def health_check() -> dict:

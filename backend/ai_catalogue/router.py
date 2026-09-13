@@ -1,9 +1,15 @@
-from fastapi import APIRouter
-from .schemas import AICatalogueGenerateRequest, AICatalogueGenerateResponse
-from .service import generate_catalogue
+from fastapi import APIRouter, Depends
+from typing import Any
+from . import schemas
+from . import service
+from auth.dependencies import get_current_user
 
-router = APIRouter(prefix="/catalogue", tags=["catalogue"])
+router = APIRouter(prefix="/ai", tags=["ai_catalogue"])
 
-@router.post("/generate", response_model=AICatalogueGenerateResponse)
-def route_generate_catalogue(req: AICatalogueGenerateRequest) -> AICatalogueGenerateResponse:
-    return generate_catalogue(req)
+@router.post("/generate-catalogue", response_model=schemas.CatalogueGenerateResponse)
+def route_generate_catalogue(req: schemas.CatalogueGenerateRequest, current_user: Any = Depends(get_current_user)):
+    return service.generate_catalogue(req.transcript, req.category, req.language)
+
+@router.post("/generate-catalogue/{product_id}")
+def route_save_catalogue(product_id: str, req: schemas.CatalogueSaveRequest, current_user: Any = Depends(get_current_user)):
+    return service.save_catalogue(product_id, current_user["id"], req)
