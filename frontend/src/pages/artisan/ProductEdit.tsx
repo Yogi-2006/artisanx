@@ -73,60 +73,87 @@ const ProductEdit = () => {
     };
 
     if (loading) {
-        return <div className="min-h-screen bg-brand-bg flex items-center justify-center">{tGlobal('common.loading')}</div>;
+        return <div className="min-h-screen bg-surface flex items-center justify-center text-on-surface-variant font-medium">{tGlobal('common.loading')}</div>;
     }
 
     return (
-        <div className={`w-full pb-20 relative`} dir={isRTL ? 'rtl' : 'ltr'}>
-            <div className="w-full bg-white relative">
-                <div className="sticky top-0 bg-white border-b border-stone-200 z-10 p-4">
-                    <div className="flex justify-between items-center mb-2">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-xl font-bold text-stone-800">{tGlobal('products.update')}</h1>
+        <div className="w-full min-h-screen bg-surface flex flex-col relative" dir={isRTL ? 'rtl' : 'ltr'}>
+            <header className="fixed top-0 inset-x-0 mobile-shell-width z-50 pt-safe bg-surface/95 backdrop-blur-md border-b border-outline-variant/20">
+                <div className="h-14 px-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => navigate('/artisan/products')}
+                            className="w-10 h-10 flex items-center justify-center -ml-2 text-on-surface rounded-full hover:bg-surface-container transition-colors"
+                        >
+                            <span className="material-symbols-outlined text-[24px]">close</span>
+                        </button>
+                        <div className="flex flex-col ml-1">
+                            <h1 className="font-bold text-lg text-on-surface tracking-tight truncate leading-tight">
+                                {tGlobal('products.update')}
+                            </h1>
                             {status === 'published' && (
-                                <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{tGlobal('products.published')}</span>
+                                <span className="text-[10px] text-tertiary font-bold uppercase tracking-wider">{tGlobal('products.published')}</span>
                             )}
                         </div>
-                        <div className="flex items-center gap-2">
-                            {status === 'published' && (
-                                <button onClick={handleUnpublish} className="text-xs font-bold text-stone-500 hover:text-stone-700 underline">
-                                    {tGlobal('products.unpublish')}
-                                </button>
-                            )}
-                            <button onClick={() => navigate('/artisan/products')} className="text-stone-500 hover:text-stone-700 ml-2">✕</button>
-                        </div>
                     </div>
-                    <div className="flex gap-1 justify-between">
-                        {[1, 2, 3, 4, 5, 6, 7].map(i => (
-                            <div key={i} className={`h-2 flex-1 rounded-full ${currentStep >= i ? 'bg-brand-dark' : 'bg-stone-200'}`} />
-                        ))}
-                    </div>
+                    {status === 'published' && (
+                        <button onClick={handleUnpublish} className="px-3 py-1.5 text-xs font-bold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-full transition-colors">
+                            {tGlobal('products.unpublish')}
+                        </button>
+                    )}
                 </div>
+            </header>
 
-                <div className="p-4">
+            <main className="flex-1 flex flex-col relative w-full max-w-lg mx-auto pt-16 pb-safe bg-surface px-5">
+                <div className="flex flex-col w-full pb-10 pt-4">
+                    
+                    {/* Visual Step Progress Track */}
+                    <section className="w-full pb-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-primary font-bold tracking-wider uppercase">Step {currentStep} of 7</span>
+                        </div>
+                        
+                        <div className="flex gap-1.5 items-center w-full">
+                            {[1, 2, 3, 4, 5, 6, 7].map((stepId) => {
+                                const isCompleted = stepId < currentStep;
+                                const isActive = stepId === currentStep;
+                                
+                                return (
+                                    <div key={stepId} className={`flex-1 h-2 rounded-full overflow-hidden transition-all duration-300 ${isCompleted ? 'bg-primary' : isActive ? 'bg-primary' : 'bg-surface-container-high'}`}>
+                                        {isActive && <div className="w-full h-full bg-white/40 animate-pulse"></div>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+
                     {reviewStatus === 'needs_changes' && (
-                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-                            <h3 className="font-bold text-red-800 flex items-center gap-2 mb-2">
-                                <span>⚠️</span> {tGlobal('facilitator.needs_changes') || 'Correction Requested'}
+                        <div className="mb-6 p-4 bg-error-container text-on-error-container border border-error/20 rounded-[20px] shadow-sm">
+                            <h3 className="font-bold flex items-center gap-2 mb-2">
+                                <span className="material-symbols-outlined text-xl">error</span> 
+                                {tGlobal('facilitator.needs_changes') || 'Correction Requested'}
                             </h3>
-                            {reviewNotes && <p className="text-sm text-red-700 mb-2">{reviewNotes}</p>}
+                            {reviewNotes && <p className="text-sm opacity-90 mb-3">{reviewNotes}</p>}
                             {reviewFlags.length > 0 && (
-                                <div className="flex flex-wrap gap-1">
+                                <div className="flex flex-wrap gap-1.5 mb-2">
                                     {reviewFlags.map(f => (
-                                        <span key={f} className="text-[10px] font-bold px-2 py-0.5 bg-white text-red-600 rounded border border-red-200">
+                                        <span key={f} className="text-[10px] font-bold px-2 py-1 bg-surface/50 rounded text-on-error-container border border-error/10">
                                             {tGlobal(`facilitator.flag_${f}`) || f}
                                         </span>
                                     ))}
                                 </div>
                             )}
-                            <div className="mt-3 text-xs text-red-600 italic">
+                            <div className="mt-3 text-xs opacity-70 italic font-medium">
                                 Editing any field will automatically mark this product as resubmitted for review.
                             </div>
                         </div>
                     )}
-                    {renderStep()}
+
+                    <div data-guide-id={`product-edit-step-${currentStep}`}>
+                        {renderStep()}
+                    </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };

@@ -97,83 +97,98 @@ export default function ArtisanQuotationDetail() {
     const currentRev = revisions.find(r => r.version === quotation.current_version) || revisions[0] || {};
 
     return (
-        <div className="min-h-screen bg-surface-container-lowest pb-24 text-on-surface">
-            <div className="bg-surface px-4 pt-12 pb-4 sticky top-0 z-10 border-b border-outline-variant/30 flex items-center gap-3">
-                <button onClick={() => navigate(-1)} className="text-stone-600 hover:text-stone-900">
+        <div className="min-h-screen bg-surface pb-24 text-on-surface">
+            <header className="bg-surface/90 backdrop-blur-md px-4 pt-10 pb-4 sticky top-0 z-20 border-b border-outline-variant/20 flex items-center gap-3">
+                <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center -ml-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6" />
                 </button>
-                <h1 className="text-2xl font-bold text-stone-800">Quote {quotation.display_id}</h1>
-            </div>
+                <h1 className="text-xl font-bold text-on-surface">Quote {quotation.display_id}</h1>
+            </header>
 
             <div className="p-4 max-w-lg mx-auto space-y-6">
-                <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant">
-                    <div className="flex justify-between items-start mb-4 border-b border-stone-100 pb-4">
-                        <div>
-                            <h2 className="font-bold text-lg">{quotation.products?.title}</h2>
-                            <p className="text-sm text-stone-500">Buyer: {quotation.buyer?.display_name}</p>
+                <div className="bg-surface-container-lowest rounded-[20px] p-5 shadow-sm border border-outline-variant/30">
+                    <div className="flex justify-between items-start mb-4 border-b border-outline-variant/20 pb-4">
+                        <div className="py-1">
+                            <h2 className="font-extrabold text-lg text-on-surface leading-tight mb-1">{quotation.products?.title}</h2>
+                            <p className="text-xs text-on-surface-variant font-medium">Buyer: <span className="text-on-surface font-bold">{quotation.buyer?.display_name}</span></p>
                         </div>
-                        <span className={`px-2 py-1 text-xs font-bold rounded uppercase tracking-wider ${
-                            quotation.status === 'accepted' ? 'bg-green-100 text-green-700' :
-                            quotation.status === 'changes_requested' ? 'bg-orange-100 text-orange-700' :
-                            quotation.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-blue-100 text-blue-700'
+                        <span className={`px-2 py-1 text-[10px] font-black rounded-lg uppercase tracking-wider ${
+                            quotation.status === 'accepted' ? 'bg-tertiary-container text-on-tertiary-container' :
+                            quotation.status === 'changes_requested' ? 'bg-primary-container text-on-primary-container' :
+                            quotation.status === 'rejected' ? 'bg-error-container text-on-error-container' :
+                            'bg-secondary-container text-on-secondary-container'
                         }`}>
                             {quotation.status.replace(/_/g, ' ')}
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-y-4 text-sm">
-                        <div><span className="text-stone-500 text-xs block">Version</span><span className="font-bold">v{quotation.current_version}</span></div>
-                        <div><span className="text-stone-500 text-xs block">Quantity</span><span className="font-bold">{currentRev.quantity}</span></div>
-                        <div><span className="text-stone-500 text-xs block">Unit Price</span><span className="font-bold">₹{currentRev.unit_price}</span></div>
-                        <div><span className="text-stone-500 text-xs block">Total Price</span><span className="font-bold text-primary">₹{currentRev.total_price}</span></div>
-                        <div><span className="text-stone-500 text-xs block">Lead Time</span><span className="font-bold">{currentRev.production_lead_time_days} days</span></div>
+                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 text-sm mt-4">
+                        <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
+                            <span className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider block mb-1">Version</span>
+                            <span className="font-black text-on-surface">v{quotation.current_version}</span>
+                        </div>
+                        <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
+                            <span className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider block mb-1">Quantity</span>
+                            <span className="font-black text-on-surface">{currentRev.quantity}</span>
+                        </div>
+                        <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
+                            <span className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider block mb-1">Unit Price</span>
+                            <span className="font-black text-on-surface">₹{currentRev.unit_price}</span>
+                        </div>
+                        <div className="bg-surface-container-low p-3 rounded-xl border border-outline-variant/20 bg-primary/5">
+                            <span className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider block mb-1">Total Price</span>
+                            <span className="font-black text-primary text-base">₹{currentRev.total_price}</span>
+                        </div>
+                        <div className="col-span-2 bg-surface-container-low p-3 rounded-xl border border-outline-variant/20">
+                            <span className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider block mb-1">Lead Time</span>
+                            <span className="font-black text-on-surface">{currentRev.production_lead_time_days} days</span>
+                        </div>
                     </div>
                 </div>
 
                 {quotation.status === 'draft' && (
-                    <button onClick={handleSend} disabled={actionLoading} className="w-full py-3 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2">
-                        <Send className="w-4 h-4" /> Send to Buyer
+                    <button onClick={handleSend} disabled={actionLoading} className="w-full py-4 bg-primary text-on-primary font-bold rounded-full shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50">
+                        <Send className="w-5 h-5" /> Send to Buyer
                     </button>
                 )}
 
                 {quotation.status === 'changes_requested' && !showReviseForm && (
-                    <button onClick={() => setShowReviseForm(true)} className="w-full py-3 bg-secondary-container text-on-secondary-container font-bold rounded-xl">
-                        Create New Revision
+                    <button onClick={() => setShowReviseForm(true)} className="w-full py-4 bg-secondary-container text-on-secondary-container font-bold rounded-full shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all">
+                        <FileText className="w-5 h-5" /> Create New Revision
                     </button>
                 )}
 
                 {showReviseForm && (
-                    <div className="bg-surface rounded-2xl p-5 shadow-sm border border-primary animate-in fade-in slide-in-from-bottom-4">
-                        <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+                    <div className="bg-surface-container-lowest rounded-[20px] p-5 shadow-sm border-2 border-primary animate-in fade-in slide-in-from-bottom-4">
+                        <h3 className="font-extrabold text-on-surface text-base mb-6 flex items-center gap-2">
                           <FileText className="w-5 h-5 text-primary" /> Revise Quotation
                         </h3>
                         <div className="space-y-4 mb-6">
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Quantity</label>
-                                <input type="number" value={reviseData.quantity} onChange={e => setReviseData({...reviseData, quantity: parseInt(e.target.value)||0})} className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" />
+                                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Quantity</label>
+                                <input type="number" value={reviseData.quantity} onChange={e => setReviseData({...reviseData, quantity: parseInt(e.target.value)||0})} className="w-full p-4 border border-outline-variant/50 rounded-2xl bg-surface-container-low focus:ring-2 focus:ring-primary focus:border-primary focus:bg-surface outline-none font-bold text-on-surface transition-all" />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Unit Price (₹)</label>
-                                <input type="number" value={reviseData.unit_price} onChange={e => setReviseData({...reviseData, unit_price: parseFloat(e.target.value)||0})} className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" />
+                                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Unit Price (₹)</label>
+                                <input type="number" value={reviseData.unit_price} onChange={e => setReviseData({...reviseData, unit_price: parseFloat(e.target.value)||0})} className="w-full p-4 border border-outline-variant/50 rounded-2xl bg-surface-container-low focus:ring-2 focus:ring-primary focus:border-primary focus:bg-surface outline-none font-bold text-on-surface transition-all" />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Customization Cost (₹)</label>
-                                <input type="number" value={reviseData.customization_cost} onChange={e => setReviseData({...reviseData, customization_cost: parseFloat(e.target.value)||0})} className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" />
+                                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Customization Cost (₹)</label>
+                                <input type="number" value={reviseData.customization_cost} onChange={e => setReviseData({...reviseData, customization_cost: parseFloat(e.target.value)||0})} className="w-full p-4 border border-outline-variant/50 rounded-2xl bg-surface-container-low focus:ring-2 focus:ring-primary focus:border-primary focus:bg-surface outline-none font-bold text-on-surface transition-all" />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Production Lead Time (Days)</label>
-                                <input type="number" value={reviseData.production_lead_time_days} onChange={e => setReviseData({...reviseData, production_lead_time_days: parseInt(e.target.value)||0})} className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" />
+                                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Production Lead Time (Days)</label>
+                                <input type="number" value={reviseData.production_lead_time_days} onChange={e => setReviseData({...reviseData, production_lead_time_days: parseInt(e.target.value)||0})} className="w-full p-4 border border-outline-variant/50 rounded-2xl bg-surface-container-low focus:ring-2 focus:ring-primary focus:border-primary focus:bg-surface outline-none font-bold text-on-surface transition-all" />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Notes to Buyer</label>
-                                <textarea value={reviseData.artisan_notes} onChange={e => setReviseData({...reviseData, artisan_notes: e.target.value})} className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none min-h-[80px]" />
+                                <label className="block text-[11px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">Notes to Buyer</label>
+                                <textarea value={reviseData.artisan_notes} onChange={e => setReviseData({...reviseData, artisan_notes: e.target.value})} className="w-full p-4 border border-outline-variant/50 rounded-2xl bg-surface-container-low focus:ring-2 focus:ring-primary focus:border-primary focus:bg-surface outline-none font-medium text-on-surface transition-all min-h-[80px] resize-none" />
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => setShowReviseForm(false)} className="flex-1 py-3 text-stone-600 font-bold border rounded-xl">Cancel</button>
-                            <button onClick={handleRevise} disabled={actionLoading} className="flex-1 py-3 bg-primary text-white font-bold rounded-xl flex justify-center items-center gap-2">
-                                <Check className="w-4 h-4"/> Submit Revision
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowReviseForm(false)} className="flex-1 py-4 border border-outline-variant/50 bg-surface text-on-surface-variant font-bold rounded-full transition-colors hover:bg-surface-container-low">Cancel</button>
+                            <button onClick={handleRevise} disabled={actionLoading} className="flex-[2] py-4 bg-primary text-on-primary font-bold rounded-full flex justify-center items-center gap-2 shadow-md active:scale-95 transition-all disabled:opacity-50">
+                                <Check className="w-5 h-5"/> Submit Revision
                             </button>
                         </div>
                     </div>

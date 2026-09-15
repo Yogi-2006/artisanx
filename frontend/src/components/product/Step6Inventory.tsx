@@ -162,7 +162,7 @@ const Step6Inventory = ({ t }: { t: any }) => {
                 <p className="text-xs text-on-surface-variant mb-4">Add options like colors, sizes, or patterns if your product comes in different variations.</p>
                 
                 {loadingVariants ? (
-                    <div className="py-4 text-center text-sm text-stone-500 animate-pulse">Loading variants...</div>
+                    <div className="py-4 text-center text-sm text-on-surface-variant animate-pulse">Loading variants...</div>
                 ) : variants.length === 0 ? (
                     <div className="py-8 text-center border-2 border-dashed border-outline-variant/50 rounded-2xl bg-surface-container-low text-on-surface-variant text-sm font-medium">
                         No variants added yet.
@@ -171,7 +171,7 @@ const Step6Inventory = ({ t }: { t: any }) => {
                     <div className="space-y-4">
                         {variants.map((v, i) => (
                             <div key={v.id || i} className="bg-surface border border-outline-variant/50 rounded-2xl p-4 flex flex-col gap-3 relative">
-                                <button onClick={() => removeVariant(i)} className="absolute top-4 right-4 text-stone-400 hover:text-error transition-colors">
+                                <button onClick={() => removeVariant(i)} className="absolute top-4 right-4 text-on-surface-variant hover:text-error transition-colors">
                                     <Trash2 className="w-4 h-4" />
                                 </button>
                                 <div className="grid grid-cols-2 gap-3 pr-8">

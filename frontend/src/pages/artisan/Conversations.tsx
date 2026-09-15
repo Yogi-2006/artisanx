@@ -41,7 +41,7 @@ export default function Conversations() {
         {loading ? (
           <div className="flex justify-center p-8"><span className="text-on-surface-variant font-medium">Loading...</span></div>
         ) : conversations.length === 0 ? (
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 flex flex-col items-center text-center shadow-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-8 flex flex-col items-center text-center shadow-sm">
             <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mb-4">
               <span className="material-symbols-outlined text-on-surface-variant text-3xl">chat_bubble_outline</span>
             </div>
@@ -54,7 +54,7 @@ export default function Conversations() {
               <div 
                 key={conv.id} 
                 onClick={() => navigate(`/artisan/conversation/${conv.id}`)}
-                className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-surface-container-low transition-colors shadow-sm relative"
+                className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 flex items-center gap-4 cursor-pointer hover:bg-surface-container-low transition-colors shadow-sm relative active:scale-[0.98]"
               >
                 {conv.unread_count > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-error text-on-error rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm">

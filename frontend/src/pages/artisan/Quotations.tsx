@@ -14,33 +14,33 @@ export default function Quotations() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-stone-200 text-stone-800';
-      case 'sent': return 'bg-blue-100 text-blue-800';
-      case 'changes_requested': return 'bg-orange-100 text-orange-800';
-      case 'accepted': return 'bg-green-100 text-green-800';
-      case 'rejected': return 'bg-red-100 text-red-800';
-      default: return 'bg-stone-100 text-stone-600';
+      case 'draft': return 'bg-surface-container-high text-on-surface';
+      case 'sent': return 'bg-secondary-container text-on-secondary-container';
+      case 'changes_requested': return 'bg-primary-container text-on-primary-container';
+      case 'accepted': return 'bg-tertiary-container text-on-tertiary-container';
+      case 'rejected': return 'bg-error-container text-on-error-container';
+      default: return 'bg-surface-container text-on-surface-variant';
     }
   };
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest pb-24 text-on-surface">
-      <div className="bg-surface px-4 pt-12 pb-4 sticky top-0 z-10 border-b border-outline-variant/30">
+    <div className="min-h-screen bg-surface pb-24 text-on-surface">
+      <header className="bg-surface/90 backdrop-blur-md px-4 pt-10 pb-4 sticky top-0 z-20 border-b border-outline-variant/20">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/artisan')} className="text-stone-600 hover:text-stone-900">
+          <button onClick={() => navigate('/artisan')} className="w-10 h-10 flex items-center justify-center -ml-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold text-stone-800">Quotations</h1>
+          <h1 className="text-xl font-bold text-on-surface">Quotations</h1>
         </div>
-      </div>
+      </header>
 
       <div className="p-4 max-w-lg mx-auto">
         {loading ? (
-          <div className="flex justify-center p-8"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div></div>
+          <div className="flex justify-center p-8"><div className="w-8 h-8 rounded-full bg-surface-container-highest animate-pulse"></div></div>
         ) : quotations.length === 0 ? (
-          <div className="text-center p-8 bg-surface rounded-2xl border border-outline-variant text-stone-500">
+          <div className="text-center p-12 bg-surface-container-lowest rounded-[20px] border border-outline-variant/30 text-on-surface-variant flex flex-col items-center">
             <FileText className="w-12 h-12 mx-auto mb-3 opacity-20" />
-            <p className="font-bold">No quotations yet</p>
+            <p className="font-extrabold text-on-surface">No quotations yet</p>
             <p className="text-sm mt-1">Quotations you create will appear here.</p>
           </div>
         ) : (
@@ -49,34 +49,34 @@ export default function Quotations() {
               <div 
                   key={q.id} 
                   onClick={() => navigate(`/artisan/quotations/${q.id}`)}
-                  className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant relative cursor-pointer hover:bg-stone-50 transition-colors"
+                  className="bg-surface-container-lowest rounded-[20px] p-4 shadow-sm border border-outline-variant/30 relative cursor-pointer hover:border-primary/30 transition-colors active:scale-[0.98]"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-bold text-stone-800">{q.display_id}</h3>
-                    <p className="text-sm font-medium text-stone-500">{q.products?.title}</p>
+                    <h3 className="font-extrabold text-on-surface">{q.display_id}</h3>
+                    <p className="text-xs font-bold text-on-surface-variant line-clamp-1">{q.products?.title}</p>
                   </div>
                   <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${getStatusColor(q.status)}`}>
                     {q.status.replace('_', ' ')}
                   </span>
                 </div>
                 
-                <div className="flex items-center gap-2 mb-3 bg-stone-50 p-2 rounded-lg">
-                  <div className="w-8 h-8 rounded-full bg-stone-200 overflow-hidden shrink-0">
+                <div className="flex items-center gap-2 mb-3 bg-surface-container-low p-2.5 rounded-xl border border-outline-variant/20">
+                  <div className="w-8 h-8 rounded-full bg-surface-container-high overflow-hidden shrink-0 border border-outline-variant/30">
                      {q.products?.images?.[0]?.image_url ? (
                         <img src={q.products.images[0].image_url} alt="Product" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-stone-400 text-[10px]"><FileText className="w-4 h-4"/></div>
+                        <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50 text-[10px]"><FileText className="w-4 h-4"/></div>
                       )}
                   </div>
-                  <div className="text-xs text-stone-600">
-                    <span className="font-bold text-stone-800">{q.buyer?.display_name || 'Buyer'}</span> requested quotation.
+                  <div className="text-xs text-on-surface-variant font-medium">
+                    <span className="font-bold text-on-surface">{q.buyer?.display_name || 'Buyer'}</span> requested quotation.
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs text-stone-500 font-medium">
+                <div className="flex items-center gap-1.5 text-xs text-on-surface-variant font-bold">
                   <Clock className="w-3.5 h-3.5" /> {new Date(q.created_at).toLocaleDateString()}
-                  <span className="ml-auto font-bold text-primary">v{q.current_version}</span>
+                  <span className="ml-auto font-black text-primary bg-primary-container text-on-primary-container px-2 py-0.5 rounded-md">v{q.current_version}</span>
                 </div>
               </div>
             ))}

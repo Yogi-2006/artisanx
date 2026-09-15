@@ -74,13 +74,13 @@ const ProductCreate = () => {
     };
 
     return (
-        <div className="w-full min-h-screen bg-surface flex flex-col" dir={isRTL ? 'rtl' : 'ltr'}>
-            <header className="fixed top-0 w-full z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
-                <div className="h-16 px-6 flex items-center justify-between">
-                    <div className="flex items-center gap-2 min-w-0">
+        <div className="w-full min-h-screen bg-surface flex flex-col relative" dir={isRTL ? 'rtl' : 'ltr'}>
+            <header className="fixed top-0 inset-x-0 mobile-shell-width z-50 pt-safe bg-surface/95 backdrop-blur-md border-b border-outline-variant/20">
+                <div className="h-14 px-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
                         <button 
                             onClick={() => navigate('/artisan')}
-                            className="min-w-[44px] min-h-[44px] -ml-2 flex items-center justify-center text-on-surface rounded-full hover:bg-surface-container transition-colors"
+                            className="w-10 h-10 flex items-center justify-center -ml-2 text-on-surface rounded-full hover:bg-surface-container transition-colors"
                         >
                             <span className="material-symbols-outlined text-[24px]">arrow_back</span>
                         </button>
@@ -91,40 +91,24 @@ const ProductCreate = () => {
                 </div>
             </header>
 
-            <main className="flex-1 flex flex-col relative w-full max-w-lg mx-auto pt-16 pb-safe bg-surface px-6">
-                <div className="flex flex-col w-full pb-10 pt-2">
+            <main className="flex-1 flex flex-col relative w-full max-w-lg mx-auto pt-16 pb-safe bg-surface px-5">
+                <div className="flex flex-col w-full pb-10 pt-4">
                     
                     {/* Visual Step Progress Track */}
-                    <section className="w-full pb-4">
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm text-primary font-bold">Step {currentStep} of 7</span>
-                            <span className="text-sm text-on-surface-variant font-semibold">{STEPS[currentStep - 1]?.label}</span>
+                    <section className="w-full pb-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs text-primary font-bold tracking-wider uppercase">Step {currentStep} of 7</span>
+                            <span className="text-xs text-on-surface-variant font-bold tracking-wider uppercase">{STEPS[currentStep - 1]?.label}</span>
                         </div>
                         
-                        <div className="grid grid-cols-7 gap-1.5 items-center w-full">
+                        <div className="flex gap-1.5 items-center w-full">
                             {STEPS.map((step) => {
                                 const isCompleted = step.id < currentStep;
                                 const isActive = step.id === currentStep;
                                 
                                 return (
-                                    <div key={step.id} className="flex flex-col items-center gap-1">
-                                        <div className={`h-2 w-full rounded-full relative overflow-hidden ${
-                                            isCompleted ? 'bg-tertiary' : 
-                                            isActive ? 'bg-primary' : 'bg-surface-container-high'
-                                        }`}>
-                                            {isActive && <div className="absolute inset-0 bg-primary-fixed opacity-40 animate-pulse"></div>}
-                                        </div>
-                                        {isCompleted && (
-                                            <span className="text-[10px] text-tertiary flex items-center gap-0.5 leading-none font-bold">
-                                                <span className="material-symbols-outlined text-[12px]">check</span> {step.label}
-                                            </span>
-                                        )}
-                                        {isActive && (
-                                            <span className="text-[10px] text-primary font-bold leading-none">{step.label}</span>
-                                        )}
-                                        {!isCompleted && !isActive && (
-                                            <span className="text-[10px] text-outline leading-none font-medium">{step.label}</span>
-                                        )}
+                                    <div key={step.id} className={`flex-1 h-2 rounded-full overflow-hidden transition-all duration-300 ${isCompleted ? 'bg-primary' : isActive ? 'bg-primary' : 'bg-surface-container-high'}`}>
+                                        {isActive && <div className="w-full h-full bg-white/40 animate-pulse"></div>}
                                     </div>
                                 );
                             })}

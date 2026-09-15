@@ -43,90 +43,90 @@ export default function EnquiryList() {
   });
 
   return (
-    <div className="min-h-screen bg-surface-container-lowest pb-24 text-on-surface">
+    <div className="min-h-screen bg-surface pb-24 text-on-surface">
       {/* Header */}
-      <div className="bg-surface px-4 pt-12 pb-4 sticky top-0 z-10 border-b border-outline-variant/30">
+      <header className="bg-surface/90 backdrop-blur-md px-4 pt-10 pb-2 sticky top-0 z-20 border-b border-outline-variant/20">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate('/artisan')} className="text-stone-600 hover:text-stone-900">
+          <button onClick={() => navigate('/artisan')} className="w-10 h-10 flex items-center justify-center -ml-2 text-on-surface hover:bg-surface-container rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold text-stone-800">{t('enquiry.list_title') || 'Enquiries'}</h1>
+          <h1 className="text-xl font-bold text-on-surface">{t('enquiry.list_title') || 'Enquiries'}</h1>
         </div>
         
         {/* Tabs */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex space-x-2 overflow-x-auto hide-scrollbar pb-2">
           <button 
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-colors ${filter === 'all' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
+            className={`px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors ${filter === 'all' ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container-low'}`}
           >
             {t('enquiry.tab_all') || 'All'}
           </button>
           <button 
             onClick={() => setFilter('new')}
-            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-colors flex items-center gap-2 ${filter === 'new' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
+            className={`px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${filter === 'new' ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container-low'}`}
           >
             {t('enquiry.tab_new') || 'New'}
             {newCount > 0 && (
-              <span className={`px-2 py-0.5 rounded-full text-xs ${filter === 'new' ? 'bg-on-primary text-primary' : 'bg-primary text-on-primary'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] ${filter === 'new' ? 'bg-on-primary text-primary' : 'bg-primary text-on-primary'}`}>
                 {newCount}
               </span>
             )}
           </button>
           <button 
             onClick={() => setFilter('responded')}
-            className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-colors ${filter === 'responded' ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'}`}
+            className={`px-4 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-colors ${filter === 'responded' ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest border border-outline-variant/50 text-on-surface-variant hover:bg-surface-container-low'}`}
           >
             {t('enquiry.tab_responded') || 'Responded'}
           </button>
         </div>
-      </div>
+      </header>
 
       {/* List */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 max-w-lg mx-auto">
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-pulse w-8 h-8 rounded-full bg-stone-300"></div>
+            <div className="animate-pulse w-8 h-8 rounded-full bg-surface-container-highest"></div>
           </div>
         ) : filteredEnquiries.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-stone-200 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-stone-400" />
+          <div className="text-center py-12 flex flex-col items-center">
+            <div className="w-24 h-24 bg-surface-container-highest rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="material-symbols-outlined text-4xl text-on-surface-variant/50">search</span>
             </div>
-            <p className="text-stone-500">{t('enquiry.no_enquiries') || 'No enquiries found.'}</p>
+            <p className="text-on-surface-variant font-bold">{t('enquiry.no_enquiries') || 'No enquiries found.'}</p>
           </div>
         ) : (
           filteredEnquiries.map(enq => (
             <div 
               key={enq.id}
               onClick={() => navigate(`/artisan/enquiry/${enq.id}`)}
-              className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant active:scale-[0.98] transition-transform cursor-pointer"
+              className="bg-surface-container-lowest rounded-[20px] p-3 shadow-sm border border-outline-variant/30 active:scale-[0.98] transition-transform cursor-pointer hover:border-primary/30"
             >
-              <div className="flex gap-4">
-                <div className="w-20 h-20 rounded-xl bg-stone-200 overflow-hidden shrink-0 border border-stone-200">
+              <div className="flex gap-4 items-center">
+                <div className="w-24 h-24 rounded-2xl bg-surface-container-high overflow-hidden shrink-0 border border-outline-variant/20">
                   {enq.products?.images?.[0]?.image_url ? (
                     <img src={enq.products.images[0].image_url} alt="Product" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">{t('common.no_image')}</div>
+                    <div className="w-full h-full flex items-center justify-center text-on-surface-variant/50 text-xs font-medium">{t('common.no_image')}</div>
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-bold text-stone-800 line-clamp-1">{enq.products?.title || 'Product'}</h3>
-                    {enq.status === 'new' && <div className="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0 mt-1"></div>}
+                <div className="flex-1 min-w-0 py-1">
+                  <div className="flex justify-between items-start mb-0.5">
+                    <h3 className="font-extrabold text-on-surface text-base truncate">{enq.products?.title || 'Product'}</h3>
+                    {enq.status === 'new' && <div className="w-2.5 h-2.5 rounded-full bg-error shrink-0 mt-1.5 animate-pulse"></div>}
                   </div>
-                  <p className="text-sm text-stone-600 mb-2">{t('enquiry.buyer') || t('auth.buyer')}: <span className="font-bold text-stone-800">{enq.buyer?.display_name || 'Anonymous'}</span></p>
+                  <p className="text-xs text-on-surface-variant font-medium mb-3 truncate">{t('enquiry.buyer') || t('auth.buyer')}: <span className="font-bold text-on-surface">{enq.buyer?.display_name || 'Anonymous'}</span></p>
                   
-                  <div className="flex items-center justify-between text-xs font-bold">
-                    <span className="text-stone-500 bg-stone-100 px-2 py-1 rounded">Qty: {enq.quantity}</span>
+                  <div className="flex items-center justify-between text-xs font-bold mt-auto">
+                    <span className="text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full">Qty: {enq.quantity}</span>
                     
                     {enq.status === 'new' && (
-                      <span className="text-blue-600 bg-blue-50 px-2 py-1 rounded-full">{t('enquiry.status_new') || 'New'}</span>
+                      <span className="text-secondary bg-secondary-container px-2 py-1 rounded-full">{t('enquiry.status_new') || 'New'}</span>
                     )}
                     {enq.status === 'viewed' && (
-                      <span className="text-stone-600 bg-stone-100 px-2 py-1 rounded-full">{t('enquiry.status_viewed') || 'Viewed'}</span>
+                      <span className="text-on-surface-variant bg-surface-container px-2 py-1 rounded-full">{t('enquiry.status_viewed') || 'Viewed'}</span>
                     )}
                     {enq.status === 'responded' && (
-                      <span className="text-green-600 bg-green-50 px-2 py-1 rounded-full">{t('enquiry.status_responded') || 'Responded'}</span>
+                      <span className="text-tertiary bg-tertiary-container px-2 py-1 rounded-full">{t('enquiry.status_responded') || 'Responded'}</span>
                     )}
                   </div>
                 </div>

@@ -138,7 +138,7 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
         )}
         
         {passportData.verification_status && (
-          <div className="mt-4 inline-flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-xs font-medium border border-green-100">
+          <div className="mt-4 inline-flex items-center gap-1.5 bg-tertiary-container text-on-tertiary-container px-3 py-1.5 rounded-full text-xs font-medium border border-tertiary-container">
             <ShieldCheck size={14} />
             {verificationMap[passportData.verification_status] || passportData.verification_status}
           </div>

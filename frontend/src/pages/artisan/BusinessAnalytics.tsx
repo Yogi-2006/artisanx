@@ -47,7 +47,7 @@ export default function BusinessAnalytics() {
           <div className="flex justify-center p-8"><span className="text-on-surface-variant font-medium">Loading analytics...</span></div>
         ) : (
           <>
-            <section className="bg-primary-fixed/20 border border-primary/20 rounded-xl p-5 shadow-sm">
+            <section className="bg-primary-fixed/20 border border-primary/20 rounded-[20px] p-5 shadow-sm">
               <h3 className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-4">Total Revenue</h3>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center text-2xl font-bold shrink-0">
@@ -61,25 +61,25 @@ export default function BusinessAnalytics() {
             </section>
 
             <section className="grid grid-cols-2 gap-3">
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm text-center">
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 shadow-sm text-center">
                 <span className="text-2xl font-black text-secondary">{performance.total_views}</span>
                 <span className="block text-[11px] font-bold text-on-surface-variant uppercase mt-1">Total Views</span>
               </div>
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm text-center">
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 shadow-sm text-center">
                 <span className="text-2xl font-black text-tertiary">{performance.total_passport_views}</span>
                 <span className="block text-[11px] font-bold text-on-surface-variant uppercase mt-1">Passport Views</span>
               </div>
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm text-center">
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 shadow-sm text-center">
                 <span className="text-2xl font-black text-primary">{performance.conversion_rate}%</span>
                 <span className="block text-[11px] font-bold text-on-surface-variant uppercase mt-1">Conversion Rate</span>
               </div>
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm text-center">
+              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 shadow-sm text-center">
                 <span className="text-2xl font-black text-error">{metrics.orders.cancellation_rate}%</span>
                 <span className="block text-[11px] font-bold text-on-surface-variant uppercase mt-1">Cancel Rate</span>
               </div>
             </section>
 
-            <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm">
+            <section className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-5 shadow-sm">
               <h3 className="text-sm font-bold text-on-surface mb-4">Top Products</h3>
               {performance.top_products.length === 0 ? (
                 <p className="text-sm text-on-surface-variant">No product data available yet.</p>

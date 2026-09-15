@@ -41,7 +41,7 @@ export default function ReviewsList() {
         {loading ? (
           <div className="flex justify-center p-8"><span className="text-on-surface-variant font-medium">Loading...</span></div>
         ) : !data || data.reviews.length === 0 ? (
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 flex flex-col items-center text-center shadow-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-8 flex flex-col items-center text-center shadow-sm">
             <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mb-4 text-tertiary">
               <span className="material-symbols-outlined text-3xl">star</span>
             </div>
@@ -50,7 +50,7 @@ export default function ReviewsList() {
           </div>
         ) : (
           <>
-            <section className="bg-tertiary-fixed/30 border border-tertiary/20 rounded-xl p-5 shadow-sm text-center">
+            <section className="bg-tertiary-fixed/30 border border-tertiary/20 rounded-[20px] p-5 shadow-sm text-center">
               <span className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2 block">Average Rating</span>
               <div className="flex items-center justify-center gap-2 mb-1">
                 <span className="text-4xl font-black text-tertiary">{data.aggregates.overall}</span>
@@ -76,7 +76,7 @@ export default function ReviewsList() {
 
             <section className="flex flex-col gap-4">
               {data.reviews.map((rev: any) => (
-                <div key={rev.id} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                <div key={rev.id} className="bg-surface-container-lowest border border-outline-variant/30 rounded-[20px] p-4 shadow-sm flex flex-col gap-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-sm">
