@@ -22,3 +22,12 @@ def route_transcribe_voice(record_id: str, current_user: Any = Depends(get_curre
 @router.get("/transcript/{record_id}", response_model=schemas.TranscriptResponse)
 def route_get_transcript(record_id: str, current_user: Any = Depends(get_current_user), token: str = Depends(get_token)):
     return service.get_transcript(record_id, current_user["id"], token)
+
+@router.post("/process", response_model=schemas.TranscriptResponse)
+def route_process_voice(
+    product_id: Optional[str] = Form(None),
+    file: UploadFile = File(...),
+    current_user: Any = Depends(get_current_user),
+    token: str = Depends(get_token)
+):
+    return service.process_voice_directly(file, product_id, current_user["id"], token)

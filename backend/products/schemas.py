@@ -10,9 +10,15 @@ class ProductCreate(BaseModel):
     materials: Optional[Any] = None
     care_instructions: Optional[str] = None
     price: Optional[float] = None
+    min_safe_price: Optional[float] = None
+    suggested_price: Optional[float] = None
     status: Optional[str] = "draft"
     dimensions: Optional[str] = None
     stock_quantity: Optional[int] = None
+    reserved_stock: Optional[int] = None
+    is_made_to_order: Optional[bool] = None
+    monthly_capacity: Optional[int] = None
+    low_stock_threshold: Optional[int] = None
     moq: Optional[int] = None
     lead_time_days: Optional[int] = None
 
@@ -30,6 +36,10 @@ class ProductUpdate(BaseModel):
     readiness_score: Optional[int] = None
     dimensions: Optional[str] = None
     stock_quantity: Optional[int] = None
+    reserved_stock: Optional[int] = None
+    is_made_to_order: Optional[bool] = None
+    monthly_capacity: Optional[int] = None
+    low_stock_threshold: Optional[int] = None
     moq: Optional[int] = None
     lead_time_days: Optional[int] = None
 
@@ -52,6 +62,10 @@ class ProductResponse(BaseModel):
     main_image: Optional[str] = None
     dimensions: Optional[str] = None
     stock_quantity: Optional[int] = None
+    reserved_stock: Optional[int] = None
+    is_made_to_order: Optional[bool] = None
+    monthly_capacity: Optional[int] = None
+    low_stock_threshold: Optional[int] = None
     moq: Optional[int] = None
     lead_time_days: Optional[int] = None
 
@@ -70,6 +84,7 @@ class CatalogueItem(BaseModel):
     title: Optional[str] = None
     main_image: Optional[str] = None
     price: Optional[float] = None
+    artisan_id: Optional[str] = None
     artisan_name: Optional[str] = None
     location: Optional[str] = None
     craft_type: Optional[str] = None

@@ -65,8 +65,8 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
   return (
     <div className="w-full relative pb-20 font-sans">
       {/* Header / Gallery */}
-      <div className="relative bg-white shadow-sm">
-        <div className="relative h-80 w-full overflow-hidden bg-stone-200">
+      <div className="relative bg-surface shadow-sm text-on-surface">
+        <div className="relative h-80 w-full overflow-hidden bg-surface-container">
           <AnimatePresence initial={false}>
             <motion.img
               key={currentImageIdx}
@@ -99,15 +99,15 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
         </div>
         
         <div className="p-5">
-          <h1 className="text-2xl font-bold text-stone-900">{passportData.title}</h1>
-          <p className="text-xl font-medium text-brand-dark mt-2">₹{passportData.price.toFixed(2)}</p>
+          <h1 className="text-2xl font-bold text-on-surface">{passportData.title}</h1>
+          <p className="text-xl font-medium text-primary mt-2">₹{passportData.price.toFixed(2)}</p>
           
           <div className="flex gap-3 mt-4">
-            <button onClick={handleShare} className="flex-1 bg-stone-100 hover:bg-stone-200 text-stone-800 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors">
+            <button onClick={handleShare} className="flex-1 bg-surface-container hover:bg-surface-container-high text-on-surface py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors">
               <Share2 size={18} />
               {shareSuccess ? t('passport.copied', 'Copied!') : t('passport.share', 'Share')}
             </button>
-            <button className="flex-1 bg-amber-700 hover:bg-amber-800 text-white py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-md">
+            <button className="flex-1 bg-primary hover:bg-primary/90 text-on-primary py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors shadow-md">
               <MessageCircle size={18} />
               {t('passport.enquire', 'Send Enquiry')}
             </button>
@@ -116,23 +116,23 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
       </div>
 
       {/* Artisan Section */}
-      <div className="mt-4 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-bold tracking-wider text-stone-400 uppercase mb-4">{t('passport.artisan_story', 'Artisan Story')}</h2>
+      <div className="mt-4 bg-surface p-5 shadow-sm text-on-surface">
+        <h2 className="text-sm font-bold tracking-wider text-on-surface-variant uppercase mb-4">{t('passport.artisan_story', 'Artisan Story')}</h2>
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-14 h-14 bg-brand-neon rounded-full flex items-center justify-center text-brand-dark font-bold text-xl">
+          <div className="w-14 h-14 bg-secondary-container rounded-full flex items-center justify-center text-on-secondary-container font-bold text-xl">
             {passportData.artisan_name.charAt(0)}
           </div>
           <div>
-            <h3 className="font-bold text-stone-900 text-lg">{passportData.artisan_name}</h3>
+            <h3 className="font-bold text-on-surface text-lg">{passportData.artisan_name}</h3>
             {passportData.craft_location && (
-              <p className="text-stone-500 flex items-center gap-1 text-sm mt-0.5">
+              <p className="text-on-surface-variant flex items-center gap-1 text-sm mt-0.5">
                 <MapPin size={14} /> {passportData.craft_location}
               </p>
             )}
           </div>
         </div>
         {passportData.artisan_story && (
-          <p className="text-stone-600 text-sm leading-relaxed">
+          <p className="text-on-surface-variant text-sm leading-relaxed">
             {passportData.artisan_story}
           </p>
         )}
@@ -146,8 +146,8 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
       </div>
 
       {/* Details Section */}
-      <div className="mt-4 bg-white p-5 shadow-sm">
-        <h2 className="text-sm font-bold tracking-wider text-stone-400 uppercase mb-4">{t('passport.product_details', 'Product Details')}</h2>
+      <div className="mt-4 bg-surface p-5 shadow-sm text-on-surface">
+        <h2 className="text-sm font-bold tracking-wider text-on-surface-variant uppercase mb-4">{t('passport.product_details', 'Product Details')}</h2>
         
         <div className="grid grid-cols-2 gap-4">
           <DetailItem icon={<Package size={16}/>} label={t('passport.moq', 'Min. Order')} value={passportData.moq ? `${passportData.moq} units` : '-'} />
@@ -157,9 +157,9 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
         </div>
 
         {passportData.materials && (
-          <div className="mt-5 pt-5 border-t border-stone-100">
-            <h3 className="font-medium text-stone-900 mb-2 flex items-center gap-2"><Info size={16} className="text-stone-400"/> {t('passport.materials', 'Materials')}</h3>
-            <div className="text-stone-600 text-sm flex flex-col gap-1">
+          <div className="mt-5 pt-5 border-t border-outline-variant">
+            <h3 className="font-medium text-on-surface mb-2 flex items-center gap-2"><Info size={16} className="text-on-surface-variant"/> {t('passport.materials', 'Materials')}</h3>
+            <div className="text-on-surface-variant text-sm flex flex-col gap-1">
               {typeof passportData.materials === 'string' 
                 ? <p>{passportData.materials}</p> 
                 : passportData.materials?.list 
@@ -173,19 +173,19 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
 
         {passportData.care_instructions && (
           <div className="mt-4">
-            <h3 className="font-medium text-stone-900 mb-2">{t('passport.care', 'Care Instructions')}</h3>
-            <p className="text-stone-600 text-sm">{passportData.care_instructions}</p>
+            <h3 className="font-medium text-on-surface mb-2">{t('passport.care', 'Care Instructions')}</h3>
+            <p className="text-on-surface-variant text-sm">{passportData.care_instructions}</p>
           </div>
         )}
       </div>
 
       {/* QR Code Section */}
-      <div className="mt-4 bg-white p-5 shadow-sm text-center">
-        <h2 className="text-sm font-bold tracking-wider text-stone-400 uppercase mb-4">{t('passport.authenticity', 'Authenticity Passport')}</h2>
-        <div className="inline-block p-4 bg-white border-2 border-stone-100 rounded-2xl shadow-sm mb-3">
+      <div className="mt-4 bg-surface p-5 shadow-sm text-center text-on-surface">
+        <h2 className="text-sm font-bold tracking-wider text-on-surface-variant uppercase mb-4">{t('passport.authenticity', 'Authenticity Passport')}</h2>
+        <div className="inline-block p-4 bg-surface border-2 border-outline-variant rounded-2xl shadow-sm mb-3">
           <img src={qrCodeUrl} alt="Product QR Code" className="w-40 h-40" />
         </div>
-        <p className="text-xs text-stone-500 max-w-[250px] mx-auto">
+        <p className="text-xs text-on-surface-variant max-w-[250px] mx-auto">
           {t('passport.scan_desc', 'Scan this QR code to verify the authenticity and origin of this handcrafted product.')}
         </p>
       </div>
@@ -196,11 +196,11 @@ export default function ProductPassport({ passportData, qrCodeUrl, shareableUrl 
 function DetailItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1.5 text-stone-500 text-xs font-medium">
+      <div className="flex items-center gap-1.5 text-on-surface-variant text-xs font-medium">
         {icon}
         {label}
       </div>
-      <div className="text-stone-900 text-sm font-semibold">{value}</div>
+      <div className="text-on-surface text-sm font-semibold">{value}</div>
     </div>
   );
 }

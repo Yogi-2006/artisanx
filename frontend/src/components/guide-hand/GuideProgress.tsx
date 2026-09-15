@@ -21,8 +21,8 @@ export default function GuideProgress({ currentStep, totalSteps, stepLabel }: Gu
               initial={false}
               animate={{
                 scale: isCurrent ? 1.2 : 1,
-                backgroundColor: isCurrent || isCompleted ? '#d97706' : 'transparent',
-                borderColor: isCurrent || isCompleted ? '#d97706' : '#d6d3d1'
+                backgroundColor: isCurrent || isCompleted ? '#9a4023' : 'transparent',
+                borderColor: isCurrent || isCompleted ? '#9a4023' : '#e0e0e0'
               }}
               className="w-2.5 h-2.5 rounded-full border-2 transition-colors duration-300"
             />
@@ -34,7 +34,7 @@ export default function GuideProgress({ currentStep, totalSteps, stepLabel }: Gu
           key={stepLabel}
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-[10px] font-bold text-stone-500 uppercase tracking-wider"
+          className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider"
         >
           {stepLabel}
         </motion.div>

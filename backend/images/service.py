@@ -6,9 +6,11 @@ from PIL import Image, ImageEnhance, ImageOps
 from fastapi import HTTPException, UploadFile
 import traceback
 from database import supabase_client, get_authenticated_client
+import os
 
 try:
     from rembg import remove, new_session
+    # Switched to u2netp for much faster processing speed
     rembg_session = new_session("u2netp")
 except ImportError:
     remove = None
@@ -51,6 +53,15 @@ def upload_image(file: UploadFile, artisan_id: str, token: str, product_id: str 
         file_ext = file.filename.split(".")[-1] if file.filename else "jpg"
         file_name = f"{uuid.uuid4().hex}.{file_ext}"
         
+        try:
+            quality_res = calculate_image_quality(file_content)
+            quality_score = quality_res["overall_score"]
+            suggestions = quality_res.get("suggestions", [])
+        except Exception as e:
+            print(f"Quality check during upload failed: {e}")
+            quality_score = None
+            suggestions = []
+        
         auth_client.storage.from_("product-images").upload(
             file_name, 
             file_content,
@@ -63,6 +74,7 @@ def upload_image(file: UploadFile, artisan_id: str, token: str, product_id: str 
             "image_url": public_url,
             "original_url": public_url,
             "is_main": is_main,
+            "quality_score": quality_score
         }
         if product_id:
             record["product_id"] = product_id
@@ -71,14 +83,16 @@ def upload_image(file: UploadFile, artisan_id: str, token: str, product_id: str 
             
         res = auth_client.table("product_images").insert(record).execute()
         if res.data and len(res.data) > 0:
-            return res.data[0]
+            out_data = res.data[0]
+            out_data["suggestions"] = suggestions
+            return out_data
             
         raise HTTPException(status_code=500, detail="Failed to save image record")
     except Exception as e:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Image upload failed: {str(e)}")
 
-def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = True):
+def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = True, debug: bool = False):
     image_record = verify_image_owner(image_id, artisan_id, token)
     auth_client = get_authenticated_client(token)
     original_url = image_record.get("original_url") or image_record.get("image_url")
@@ -92,54 +106,109 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
         response.raise_for_status()
         img_data = response.content
         
+        # Calculate quality on the original upload to reuse exact logic and thresholds
+        orig_quality = calculate_image_quality(img_data)
+        is_blurry = orig_quality["blur_score"] < 40.0
+        is_dark = orig_quality["brightness_score"] < 40.0
+        is_washed_out = orig_quality["contrast_score"] < 30.0
+        
         img = Image.open(io.BytesIO(img_data)).convert("RGBA")
         
+        if debug:
+            os.makedirs("/tmp/artisanx_debug", exist_ok=True)
+            img.save(f"/tmp/artisanx_debug/{image_id}_1_original.png")
+            
+        # Fast Downscale before rembg to vastly speed it up
+        max_dim = 1024
+        if img.width > max_dim or img.height > max_dim:
+            scale = min(max_dim / img.width, max_dim / img.height)
+            new_w = int(img.width * scale)
+            new_h = int(img.height * scale)
+            img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        
         if use_rembg and remove and rembg_session:
-            img = remove(img, session=rembg_session)
+            # Added alpha matting to preserve thin structures (wicker, chains, etc.)
+            img = remove(
+                img, 
+                session=rembg_session,
+                alpha_matting=True,
+                alpha_matting_foreground_threshold=240,
+                alpha_matting_background_threshold=10,
+                alpha_matting_erode_size=10
+            )
+            
+        if debug:
+            img.save(f"/tmp/artisanx_debug/{image_id}_2_cutout.png")
             
         # Get bounding box of non-transparent pixels to remove empty space
-        # Extract alpha channel to ensure we only crop based on opacity, 
-        # as RGB channels might have residual non-zero values from rembg.
+        # Extract alpha channel to ensure we only crop based on opacity
         alpha = img.split()[-1]
         bbox = alpha.getbbox()
         if bbox:
             img = img.crop(bbox)
             
+        if debug:
+            img.save(f"/tmp/artisanx_debug/{image_id}_3_cropped.png")
+            
         # Apply enhancements to the foreground BEFORE compositing
         r, g, b, a = img.split()
         rgb_img = Image.merge("RGB", (r, g, b))
         
-        cv_rgb = np.array(rgb_img)
-        gray = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2GRAY)
-        mean_brightness = np.mean(gray)
-        std_contrast = np.std(gray)
-        
-        if mean_brightness < 100:
-            enhancer = ImageEnhance.Brightness(rgb_img)
-            rgb_img = enhancer.enhance(1.15)
-        elif mean_brightness < 130:
-            enhancer = ImageEnhance.Brightness(rgb_img)
-            rgb_img = enhancer.enhance(1.05)
+        # Luminance-focused correction is used to minimize product hue/color
+        # changes caused by direct RGB-channel adjustments.
+        # Apply conservatively only if the image is considered dark or washed out.
+        if is_dark or is_washed_out:
+            cv_rgb = np.array(rgb_img)
+            lab = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2LAB)
+            l_chan, a_chan, b_chan = cv2.split(lab)
             
-        if std_contrast < 40:
-            enhancer = ImageEnhance.Contrast(rgb_img)
-            rgb_img = enhancer.enhance(1.1)
+            # Conservative CLAHE
+            clahe = cv2.createCLAHE(clipLimit=1.5, tileGridSize=(8, 8))
+            l_eq = clahe.apply(l_chan)
             
-        enhancer = ImageEnhance.Sharpness(rgb_img)
-        rgb_img = enhancer.enhance(1.15)
+            # Recombine leaving A and B untouched to preserve color
+            lab_eq = cv2.merge((l_eq, a_chan, b_chan))
+            cv_rgb_eq = cv2.cvtColor(lab_eq, cv2.COLOR_LAB2RGB)
+            rgb_img = Image.fromarray(cv_rgb_eq)
+            
+        # Conditional Sharpening
+        # Apply light sharpening ONLY if the image is NOT blurry.
+        # This reuses the exact blur threshold (norm_blur < 40.0) from the quality check.
+        if not is_blurry:
+            enhancer = ImageEnhance.Sharpness(rgb_img)
+            rgb_img = enhancer.enhance(1.10)
         
         img = Image.merge("RGBA", (*rgb_img.split(), a))
+        
+        if debug:
+            img.save(f"/tmp/artisanx_debug/{image_id}_4_enhanced_fg.png")
+
+        # Aspect-Ratio-Aware Framing
+        ratio = img.width / img.height
+        
+        if ratio > 1.4:
+            # Wide
+            target_width = 1200
+            target_height = max(int(1200 / ratio), 600)
+        elif ratio < 0.71:
+            # Tall
+            target_height = 1200
+            target_width = max(int(1200 * ratio), 600)
+        else:
+            # Square-ish
+            target_width = 1024
+            target_height = 1024
 
         # Scaling & Padding
-        target_size = 1024
         # Target ~80% of canvas dimension to give product dominant scale 
         # while leaving safe padding for shadow and edges
-        max_size = int(target_size * 0.80)
+        max_width = int(target_width * 0.80)
+        max_height = int(target_height * 0.80)
         
-        # Calculate exact scaling to fit max_size (scaling up or down) while maintaining aspect ratio
-        ratio = min(max_size / img.width, max_size / img.height)
-        new_width = int(img.width * ratio)
-        new_height = int(img.height * ratio)
+        # Calculate exact scaling to fit max bounds while maintaining aspect ratio
+        scale_ratio = min(max_width / img.width, max_height / img.height)
+        new_width = int(img.width * scale_ratio)
+        new_height = int(img.height * scale_ratio)
         img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
         
         # Shadow generation
@@ -154,12 +223,12 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
         shadow.putalpha(shadow_mask)
         
         # Put shadow on a full-size canvas to avoid clipping blur
-        shadow_canvas = Image.new("RGBA", (target_size, target_size), (0, 0, 0, 0))
+        shadow_canvas = Image.new("RGBA", (target_width, target_height), (0, 0, 0, 0))
         
         # Calculate center position
-        paste_x = (target_size - img.width) // 2
+        paste_x = (target_width - img.width) // 2
         # shift product up slightly to balance the shadow offset
-        paste_y = (target_size - img.height) // 2 - (shadow_offset_y // 2)
+        paste_y = (target_height - img.height) // 2 - (shadow_offset_y // 2)
         
         shadow_paste_y = paste_y + shadow_offset_y
         
@@ -174,6 +243,8 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
         shadow_canvas = Image.merge("RGBA", (shadow_r, shadow_g, shadow_b, shadow_a))
         
         # Determine background color based on product brightness
+        # Reuse orig_quality brightness score
+        mean_brightness = orig_quality["brightness_score"] / 100.0 * 255.0 # Un-normalize for comparison
         if mean_brightness > 180:
             bg_color = (230, 230, 230)
         elif mean_brightness < 90:
@@ -182,14 +253,17 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
             bg_color = (240, 240, 240)
             
         # Final compositing
-        final_img = Image.new("RGB", (target_size, target_size), bg_color)
+        final_img = Image.new("RGB", (target_width, target_height), bg_color)
         # Paste shadow
         final_img.paste(shadow_canvas, (0, 0), shadow_canvas)
         # Paste product
         final_img.paste(img, (paste_x, paste_y), img)
         
+        if debug:
+            final_img.save(f"/tmp/artisanx_debug/{image_id}_5_final.jpg", quality=95)
+        
         out_buffer = io.BytesIO()
-        final_img.save(out_buffer, format="JPEG", quality=90)
+        final_img.save(out_buffer, format="JPEG", quality=95)
         out_bytes = out_buffer.getvalue()
         
         quality_res = calculate_image_quality(out_bytes)

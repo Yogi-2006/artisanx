@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Mic, Square, RotateCcw, CheckCircle, Keyboard, Type } from 'lucide-react';
 import { useProductStore } from '../../stores/productStore';
 import api from '../../lib/api';
+import { Button } from '../ui/Button';
 
 const Step2Voice = ({ t, lang }: { t: any, lang: string }) => {
     const { voiceData, setVoiceData, setStep, saveDraft, draftId } = useProductStore();
@@ -18,7 +19,7 @@ const Step2Voice = ({ t, lang }: { t: any, lang: string }) => {
         if (voiceData?.translated_text) {
             setDescriptionText(voiceData.translated_text);
         }
-    }, []);
+    }, [voiceData]);
 
     const mediaRecorder = useRef<MediaRecorder | null>(null);
     const timerRef = useRef<number | null>(null);
@@ -66,16 +67,14 @@ const Step2Voice = ({ t, lang }: { t: any, lang: string }) => {
             formData.append('file', audioBlob, 'recording.webm');
             if (draftId) formData.append('product_id', draftId);
             
-            const uploadRes = await api.post('/voice/upload', formData, {
+            const transcribeRes = await api.post('/voice/process', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            const recordId = uploadRes.data.id;
             
-            const transcribeRes = await api.post(`/voice/transcribe/${recordId}`);
             const text = transcribeRes.data.translated_text || transcribeRes.data.original_text;
             setDescriptionText(text);
             setVoiceData({
-                record_id: recordId,
+                record_id: transcribeRes.data.voice_record_id,
                 original_text: transcribeRes.data.original_text,
                 translated_text: text
             });
@@ -94,137 +93,191 @@ const Step2Voice = ({ t, lang }: { t: any, lang: string }) => {
     };
 
     return (
-        <div className="flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-stone-800">{t.voiceTitle || "Product Description"}</h2>
-                <span className="text-sm bg-stone-100 text-stone-600 px-3 py-1 rounded-full uppercase font-bold">{lang}</span>
-            </div>
-
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 shadow-sm">
-                <h3 className="font-bold text-brand-dark mb-1">{t.productGuidanceTitle || 'Tell us about your product'}</h3>
-                <p className="text-sm text-stone-600 mb-4">{t.productGuidanceSubtitle || "Include as many of these details as you know. It's okay if you don't know everything."}</p>
-                <div className="flex flex-wrap gap-2">
-                    {[
-                        { k: 'productGuidanceMaterial', f: 'Material' },
-                        { k: 'productGuidanceHowMade', f: "How it's made" },
-                        { k: 'productGuidanceSize', f: 'Size' },
-                        { k: 'productGuidanceDesign', f: 'Design' },
-                        { k: 'productGuidanceSpecial', f: 'Special features' },
-                        { k: 'productGuidanceUsage', f: 'Usage' },
-                        { k: 'productGuidanceCare', f: 'Care instructions' }
-                    ].map(item => (
-                        <span key={item.k} className="bg-white border border-stone-200 text-stone-600 text-xs px-2.5 py-1 rounded-md font-medium">
-                            {t[item.k] || item.f}
-                        </span>
-                    ))}
-                </div>
-            </div>
-
-            <div data-guide-id="record-voice-button" className="space-y-6">
-                <div className="flex gap-2 bg-stone-100 p-1 rounded-xl w-fit">
+        <div className="flex flex-col gap-6" data-guide-id="product_create">
+            
+            {/* Input Mode Toggle */}
+            <div className="flex gap-2 bg-surface-container-low p-1 rounded-full w-fit mx-auto mb-2">
                 <button 
                     onClick={() => setInputMode('voice')}
-                    className={`px-5 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all ${inputMode === 'voice' ? 'bg-white shadow-sm text-brand-dark' : 'text-stone-500 hover:text-stone-700'}`}
+                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all text-sm ${inputMode === 'voice' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
                 >
                     <Mic className="w-4 h-4" /> Speak
                 </button>
                 <button 
                     onClick={() => setInputMode('type')}
-                    className={`px-5 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all ${inputMode === 'type' ? 'bg-white shadow-sm text-brand-dark' : 'text-stone-500 hover:text-stone-700'}`}
+                    className={`px-5 py-2 rounded-full font-bold flex items-center gap-2 transition-all text-sm ${inputMode === 'type' ? 'bg-surface-container-lowest shadow-sm text-primary' : 'text-on-surface-variant hover:text-on-surface'}`}
                 >
                     <Keyboard className="w-4 h-4" /> Type
                 </button>
             </div>
 
             {inputMode === 'voice' && !audioBlob && (
-                <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-stone-300 rounded-2xl bg-brand-bg">
-                    <button 
-                        onClick={isRecording ? stopRecording : startRecording}
-                        className={`w-20 h-20 rounded-full flex items-center justify-center text-white shadow-xl transition-all ${
-                            isRecording ? 'bg-red-500 animate-pulse' : 'bg-brand-dark hover:bg-black'
-                        }`}
-                    >
-                        {isRecording ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
-                    </button>
-                    <div className="mt-6 text-center">
-                        {isRecording ? (
-                            <div className="text-red-500 font-mono text-xl font-bold">
-                                {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                <span className="text-stone-500 font-medium block">{t.recordVoice || 'Tap to speak'}</span>
-                                <p className="text-xs text-stone-400 max-w-[280px] italic leading-tight">
-                                    {t.productGuidanceVoiceExample || "Example: You can say 'This is a handmade wooden bottle made from neem wood. It has a natural brown finish, and can be used for storing water...'"}
-                                </p>
-                            </div>
-                        )}
+                <div className="bg-surface-container-lowest rounded-3xl p-6 shadow-sm flex flex-col items-center text-center relative overflow-hidden mb-2 border border-outline-variant/30">
+                    {/* Subtle Artisan Pattern Accent Background SVG */}
+                    <svg className="absolute -right-8 -top-8 w-36 h-36 opacity-5 pointer-events-none text-primary" fill="currentColor" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" fill="none" r="45" stroke="currentColor" strokeDasharray="6,6" strokeWidth="4"></circle>
+                        <circle cx="50" cy="50" fill="none" r="28" stroke="currentColor" strokeWidth="2"></circle>
+                        <path d="M50 10 L50 90 M10 50 L90 50 M22 22 L78 78 M22 78 L78 22"></path>
+                    </svg>
+                    
+                    {/* Language Badge */}
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-xs mb-4 shadow-sm uppercase tracking-wider">
+                        <span className="material-symbols-outlined text-[16px]">language</span>
+                        <span>{lang} • Auto-Detected</span>
                     </div>
+
+                    <h2 className="text-2xl font-bold text-on-surface mb-2">
+                        {t.voiceTitle || "Tell us about your craft"}
+                    </h2>
+                    <p className="text-sm text-on-surface-variant max-w-xs mb-6">
+                        Speak naturally in your own language. No typing needed.
+                    </p>
+
+                    {/* Glowing Interactive Mic Button */}
+                    <div className="relative flex items-center justify-center my-4">
+                        {isRecording && (
+                            <>
+                                <div className="absolute w-28 h-28 rounded-full bg-error-container opacity-40 animate-ping"></div>
+                                <div className="absolute w-24 h-24 rounded-full bg-error opacity-70"></div>
+                            </>
+                        )}
+                        <button 
+                            aria-label="Tap to speak or record voice" 
+                            className={`relative z-10 w-[88px] h-[88px] rounded-full flex flex-col items-center justify-center shadow-lg active:scale-95 transition-all ${isRecording ? 'bg-error text-on-error' : 'bg-gradient-to-br from-primary via-primary-container to-surface-tint text-on-primary'}`} 
+                            onClick={isRecording ? stopRecording : startRecording}
+                            type="button"
+                        >
+                            {isRecording ? <Square className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+                            <span className="text-[10px] tracking-wider uppercase font-bold opacity-90 mt-1">{isRecording ? 'Stop' : 'Record'}</span>
+                        </button>
+                    </div>
+                    
+                    {isRecording ? (
+                        <div className="w-full mt-4 pt-2 flex flex-col items-center">
+                            <div className="flex items-center justify-between w-full max-w-[260px] mb-2 px-1">
+                                <span className="flex items-center gap-1 text-sm text-error font-bold tracking-wider">
+                                    <span className="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+                                    {Math.floor(timer / 60).toString().padStart(2, '0')}:{(timer % 60).toString().padStart(2, '0')}
+                                </span>
+                                <span className="text-[11px] text-on-surface-variant uppercase tracking-wider font-bold">Voice active</span>
+                            </div>
+                            <div className="flex items-center justify-center gap-1 h-12 w-full px-4 bg-surface-container-low rounded-xl py-2">
+                                {[3, 7, 10, 6, 11, 8, 4, 9, 12, 7, 4, 10, 5, 3].map((h, idx) => (
+                                    <span key={idx} className={`w-1.5 rounded-full animate-pulse ${idx % 2 === 0 ? 'bg-primary' : (idx % 3 === 0 ? 'bg-secondary' : 'bg-primary-container')}`} style={{ height: `${h * 4}px`, animationDelay: `${idx * 0.1}s` }}></span>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-primary mt-2 font-bold uppercase tracking-wider">
+                            Tap to start
+                        </p>
+                    )}
                 </div>
             )}
 
             {inputMode === 'voice' && audioBlob && !voiceData && (
-                <div className="flex flex-col gap-4 bg-brand-bg p-6 rounded-2xl border border-stone-200">
-                    <audio src={audioUrl!} controls className="w-full" />
+                <div className="flex flex-col gap-4 bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/30 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 text-sm text-tertiary font-bold">
+                            <span className="material-symbols-outlined text-[18px]">mic_double</span>
+                            Voice captured successfully
+                        </span>
+                        <span className="text-[11px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md uppercase tracking-wider font-bold">Ready</span>
+                    </div>
+
+                    <audio src={audioUrl!} controls className="w-full h-12 rounded-full overflow-hidden" />
                     
                     <div className="flex gap-4 mt-2">
-                        <button 
+                        <Button 
+                            variant="secondary"
                             onClick={() => { setAudioBlob(null); setAudioUrl(null); }}
-                            className="flex-1 py-3 border border-stone-300 rounded-xl font-medium flex items-center justify-center gap-2 text-stone-600 hover:bg-stone-100"
                             disabled={isProcessing}
+                            className="flex-1"
                         >
-                            <RotateCcw className="w-5 h-5" /> {t.reRecord}
-                        </button>
-                        <button 
+                            <RotateCcw className="w-4 h-4 mr-2" /> {t.reRecord}
+                        </Button>
+                        <Button 
                             onClick={handleProcessVoice}
-                            className="flex-1 py-3 bg-brand-dark text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-black disabled:opacity-50"
                             disabled={isProcessing}
+                            className="flex-1"
                         >
                             {isProcessing ? (
-                                <span className="animate-pulse" data-guide-id="ai-processing-loader">{t.processing}</span>
+                                <span className="flex items-center justify-center gap-2" data-guide-id="ai-processing-loader">
+                                    <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                                    {t.processing}
+                                </span>
                             ) : (
-                                <><CheckCircle className="w-5 h-5" /> {t.processVoice}</>
+                                <><CheckCircle className="w-4 h-4 mr-2" /> AI Translate</>
                             )}
-                        </button>
+                        </Button>
                     </div>
-                    {errorMsg && <div className="text-red-500 text-sm text-center">{errorMsg}</div>}
+                    {errorMsg && <div className="text-error text-sm text-center font-medium bg-error-container text-on-error-container p-2 rounded-lg">{errorMsg}</div>}
                 </div>
             )}
 
-            {(inputMode === 'type' || (inputMode === 'voice' && voiceData)) && (
-                <div className="bg-brand-bg border border-stone-200 rounded-2xl p-6">
+            {((inputMode === 'type') || (inputMode === 'voice' && voiceData)) && (
+                <div className="bg-surface-container-lowest border border-outline-variant/30 shadow-sm rounded-3xl p-6">
+                    {inputMode === 'voice' && voiceData && (
+                        <div className="flex items-center justify-between mb-4 border-b border-surface-container pb-4">
+                            <span className="inline-flex items-center gap-1 text-sm text-tertiary font-bold">
+                                <span className="material-symbols-outlined text-[18px]">verified</span>
+                                AI Processed & Translated
+                            </span>
+                            <span className="text-[11px] text-on-surface-variant bg-surface-container px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">High Clarity</span>
+                        </div>
+                    )}
+                    
                     <div className="flex justify-between items-center mb-4">
-                        <h4 className="font-bold text-stone-800 flex items-center gap-2">
-                            <Type className="w-5 h-5 text-brand-dark" /> Description
+                        <h4 className="font-bold text-on-surface flex items-center gap-2">
+                            <Type className="w-5 h-5 text-primary" /> Edit Description
                         </h4>
                     </div>
                     
                     <textarea 
                         dir="auto"
                         placeholder={t.productGuidanceTypePlaceholder || "Example: Tell us the product name, material, how it is made, size, design and what makes it special..."}
-                        className="w-full p-4 rounded-xl border-2 border-stone-200 bg-white focus:border-brand-dark focus:ring-0 text-stone-700 text-lg leading-relaxed resize-y" 
+                        className="w-full p-4 rounded-2xl border-2 border-surface-container-high bg-surface-container-lowest focus:border-primary focus:ring-0 text-on-surface font-medium leading-relaxed resize-y shadow-inner transition-colors" 
                         value={descriptionText} 
                         onChange={(e) => setDescriptionText(e.target.value)}
                         rows={5} 
                     />
+
+                    {inputMode === 'voice' && voiceData && voiceData.original_text && (
+                        <div className="mt-4 pt-4 border-t border-surface-container">
+                            <p className="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Original Audio Transcript</p>
+                            <blockquote className="bg-surface-container-low rounded-xl p-4 text-on-surface italic text-sm border-l-4 border-secondary/50">
+                                "{voiceData.original_text}"
+                            </blockquote>
+                        </div>
+                    )}
                 </div>
             )}
 
+            <div className="bg-secondary-fixed/50 rounded-2xl p-4 mt-2 flex items-start gap-4">
+                <span className="material-symbols-outlined text-secondary text-[22px] mt-0.5">auto_awesome</span>
+                <div className="min-w-0">
+                    <h4 className="font-bold text-on-secondary-fixed text-sm">Next: AI Catalog Formatter</h4>
+                    <p className="text-sm text-on-secondary-fixed-variant mt-1">
+                        In Step 3, AI will automatically format this description into a professional buyer-ready product passport.
+                    </p>
+                </div>
             </div>
 
-            <div className="mt-8 flex justify-between">
-                <button onClick={() => setStep(1)} className="text-stone-500 font-medium px-4">{t.back}</button>
-                <button 
+            <div className="mt-4 flex gap-4">
+                <Button variant="ghost" onClick={() => setStep(1)} className="px-6">
+                    {t.back}
+                </Button>
+                <Button 
                     onClick={async () => { 
                         setVoiceData({ ...voiceData, translated_text: descriptionText, original_text: descriptionText });
                         await saveDraft(); 
                         setStep(3); 
                     }}
                     disabled={!descriptionText.trim()}
-                    className="bg-brand-dark text-white px-8 py-3 rounded-full font-medium shadow-lg disabled:opacity-50 hover:bg-black"
+                    fullWidth
                 >
-                    {t.next}
-                </button>
+                    {t.next} <span className="material-symbols-outlined text-[18px] ml-1">arrow_forward</span>
+                </Button>
             </div>
         </div>
     );

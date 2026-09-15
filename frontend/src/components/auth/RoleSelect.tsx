@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Paintbrush, ShoppingBag, Headset } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import { Button } from '../ui/Button';
 
 const translations: Record<string, any> = {
   en: {
-    artisan: "Artisan", artisanDesc: "Sell your handcrafted products",
-    buyer: "Buyer", buyerDesc: "Discover and buy unique crafts",
-    facilitator: "Facilitator", facilitatorDesc: "Help artisans onboard and manage"
+    artisan: "Artisan", artisanDesc: "Create and showcase your products with voice & photos.",
+    buyer: "Buyer", buyerDesc: "Discover authentic verified crafts directly from rural clusters.",
+    facilitator: "Facilitator", facilitatorDesc: "Support, onboard, train and verify artisan clusters."
   },
   ta: {
     artisan: "கைவினைஞர்", artisanDesc: "உங்கள் கைவினைப் பொருட்களை விற்கவும்",
@@ -58,64 +58,98 @@ interface RoleSelectProps {
 const RoleSelect: React.FC<RoleSelectProps> = ({ lang }) => {
   const { setRole, isLoading } = useAuthStore();
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState<'artisan' | 'buyer' | 'facilitator' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'artisan' | 'buyer' | 'facilitator' | null>('artisan');
 
   const t = translations[lang] || translations.en;
 
-  const handleRoleSelect = async (role: 'artisan' | 'buyer' | 'facilitator') => {
-    setSelectedRole(role);
-    await setRole(role);
-    navigate(`/${role}`);
+  const handleRoleSelect = async () => {
+    if (!selectedRole) return;
+    await setRole(selectedRole);
+    navigate(`/${selectedRole}`);
   };
 
   return (
-    <div className="w-full space-y-5">
-      <h2 className="text-3xl font-extrabold text-center text-brand-dark mb-8 tracking-tight">Choose your role</h2>
+    <div className="w-full space-y-6">
+      <div className="mb-4 text-center">
+        <h2 className="text-2xl font-bold text-on-surface flex items-center justify-center gap-2">
+          <span className="material-symbols-outlined text-primary">badge</span>
+          Select Your Role
+        </h2>
+        <p className="text-on-surface-variant mt-2 text-sm">
+          Choose how you will engage with the handcrafted artisan marketplace
+        </p>
+      </div>
       
-      <button 
-        onClick={() => handleRoleSelect('artisan')}
-        disabled={isLoading}
-        className={`w-full flex items-center p-5 rounded-[28px] border-2 transition-all duration-300 
-          ${selectedRole === 'artisan' ? 'border-brand-neon bg-white shadow-[0_8px_30px_rgba(204,255,0,0.2)]' : 'border-transparent bg-white hover:border-stone-200 shadow-sm'}`}
-      >
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mr-5 transition-colors ${selectedRole === 'artisan' ? 'bg-brand-neon text-brand-dark' : 'bg-brand-bg text-stone-500'}`}>
-          <Paintbrush size={28} />
+      <div className="space-y-3.5">
+        <div 
+          onClick={() => setSelectedRole('artisan')}
+          className={`relative p-4 rounded-2xl cursor-pointer transition-all ${selectedRole === 'artisan' ? 'bg-surface-container-lowest ring-2 ring-primary shadow-md' : 'bg-surface-container-lowest shadow-sm'}`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+                <span className="material-symbols-outlined text-2xl">handshake</span>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-on-surface">{t.artisan}</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-primary text-on-primary text-[10px] font-semibold uppercase">Recommended</span>
+                </div>
+                <p className="text-sm text-on-surface-variant mt-1 leading-snug">{t.artisanDesc}</p>
+              </div>
+            </div>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${selectedRole === 'artisan' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+              {selectedRole === 'artisan' ? <span className="material-symbols-outlined text-sm">check</span> : <div className="w-2.5 h-2.5 rounded-full bg-transparent"></div>}
+            </div>
+          </div>
         </div>
-        <div className="text-left flex-1">
-          <h3 className="font-bold text-xl text-brand-dark">{t.artisan}</h3>
-          <p className="text-stone-500 text-sm mt-0.5">{t.artisanDesc}</p>
-        </div>
-      </button>
 
-      <button 
-        onClick={() => handleRoleSelect('buyer')}
-        disabled={isLoading}
-        className={`w-full flex items-center p-5 rounded-[28px] border-2 transition-all duration-300 
-          ${selectedRole === 'buyer' ? 'border-brand-neon bg-white shadow-[0_8px_30px_rgba(204,255,0,0.2)]' : 'border-transparent bg-white hover:border-stone-200 shadow-sm'}`}
-      >
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mr-5 transition-colors ${selectedRole === 'buyer' ? 'bg-brand-neon text-brand-dark' : 'bg-brand-bg text-stone-500'}`}>
-          <ShoppingBag size={28} />
+        <div 
+          onClick={() => setSelectedRole('buyer')}
+          className={`relative p-4 rounded-2xl cursor-pointer transition-all ${selectedRole === 'buyer' ? 'bg-surface-container-lowest ring-2 ring-primary shadow-md' : 'bg-surface-container-lowest shadow-sm'}`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shadow-sm">
+                <span className="material-symbols-outlined text-2xl">storefront</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-on-surface">{t.buyer}</h3>
+                <p className="text-sm text-on-surface-variant mt-1 leading-snug">{t.buyerDesc}</p>
+              </div>
+            </div>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${selectedRole === 'buyer' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+              {selectedRole === 'buyer' ? <span className="material-symbols-outlined text-sm">check</span> : <div className="w-2.5 h-2.5 rounded-full bg-transparent"></div>}
+            </div>
+          </div>
         </div>
-        <div className="text-left flex-1">
-          <h3 className="font-bold text-xl text-brand-dark">{t.buyer}</h3>
-          <p className="text-stone-500 text-sm mt-0.5">{t.buyerDesc}</p>
-        </div>
-      </button>
 
-      <button 
-        onClick={() => handleRoleSelect('facilitator')}
-        disabled={isLoading}
-        className={`w-full flex items-center p-5 rounded-[28px] border-2 transition-all duration-300 
-          ${selectedRole === 'facilitator' ? 'border-brand-neon bg-white shadow-[0_8px_30px_rgba(204,255,0,0.2)]' : 'border-transparent bg-white hover:border-stone-200 shadow-sm'}`}
-      >
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mr-5 transition-colors ${selectedRole === 'facilitator' ? 'bg-brand-neon text-brand-dark' : 'bg-brand-bg text-stone-500'}`}>
-          <Headset size={28} />
+        <div 
+          onClick={() => setSelectedRole('facilitator')}
+          className={`relative p-4 rounded-2xl cursor-pointer transition-all ${selectedRole === 'facilitator' ? 'bg-surface-container-lowest ring-2 ring-primary shadow-md' : 'bg-surface-container-lowest shadow-sm'}`}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center shadow-sm">
+                <span className="material-symbols-outlined text-2xl">groups</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-on-surface">{t.facilitator}</h3>
+                <p className="text-sm text-on-surface-variant mt-1 leading-snug">{t.facilitatorDesc}</p>
+              </div>
+            </div>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${selectedRole === 'facilitator' ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant'}`}>
+              {selectedRole === 'facilitator' ? <span className="material-symbols-outlined text-sm">check</span> : <div className="w-2.5 h-2.5 rounded-full bg-transparent"></div>}
+            </div>
+          </div>
         </div>
-        <div className="text-left flex-1">
-          <h3 className="font-bold text-xl text-brand-dark">{t.facilitator}</h3>
-          <p className="text-stone-500 text-sm mt-0.5">{t.facilitatorDesc}</p>
-        </div>
-      </button>
+      </div>
+      
+      <div className="pt-4">
+        <Button onClick={handleRoleSelect} disabled={isLoading || !selectedRole} fullWidth>
+          {isLoading ? 'Saving...' : `Continue as ${selectedRole}`}
+        </Button>
+      </div>
     </div>
   );
 };

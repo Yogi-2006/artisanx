@@ -8,6 +8,7 @@ interface ProductWizardState {
     photos: Array<{ id: string, image_url: string, enhanced_url?: string, original_url?: string, is_main: boolean, quality_score?: number, enhanced_quality_score?: number, suggestions?: string[], enhanced_quality?: boolean }>;
     setPhotos: (photos: any[]) => void;
     addPhoto: (photo: any) => void;
+    deletePhoto: (id: string) => Promise<void>;
     voiceData: { record_id?: string, original_text?: string, translated_text?: string } | null;
     setVoiceData: (data: any) => void;
     catalogueData: {
@@ -20,6 +21,10 @@ interface ProductWizardState {
       estimated_production_time: string;
       dimensions: string;
       stock_quantity: number | '';
+      reserved_stock?: number;
+      is_made_to_order?: boolean;
+      monthly_capacity?: number | '';
+      low_stock_threshold?: number | '';
       moq: number | '';
       lead_time_days: number | '';
     } | null;
@@ -60,6 +65,14 @@ export const useProductStore = create<ProductWizardState>((set, get) => ({
     photos: [],
     setPhotos: (photos) => set({ photos }),
     addPhoto: (photo) => set((state) => ({ photos: [...state.photos, photo] })),
+    deletePhoto: async (id) => {
+        try {
+            await api.delete(`/images/${id}`);
+            set((state) => ({ photos: state.photos.filter((p) => p.id !== id) }));
+        } catch (e) {
+            console.error("Failed to delete photo", e);
+        }
+    },
     voiceData: null,
     setVoiceData: (voiceData) => set({ voiceData }),
     catalogueData: null,
@@ -126,6 +139,10 @@ export const useProductStore = create<ProductWizardState>((set, get) => ({
         status: 'draft',
         dimensions: state.catalogueData?.dimensions || '',
         stock_quantity: state.catalogueData?.stock_quantity === '' ? null : state.catalogueData?.stock_quantity,
+        reserved_stock: state.catalogueData?.reserved_stock || 0,
+        is_made_to_order: state.catalogueData?.is_made_to_order || false,
+        monthly_capacity: state.catalogueData?.monthly_capacity === '' ? null : state.catalogueData?.monthly_capacity,
+        low_stock_threshold: state.catalogueData?.low_stock_threshold === '' ? 5 : state.catalogueData?.low_stock_threshold,
         moq: state.catalogueData?.moq === '' ? null : state.catalogueData?.moq,
         lead_time_days: state.catalogueData?.lead_time_days === '' ? null : state.catalogueData?.lead_time_days
       };
@@ -223,6 +240,10 @@ export const useProductStore = create<ProductWizardState>((set, get) => ({
             estimated_production_time: '',
             dimensions: data.dimensions || '',
             stock_quantity: data.stock_quantity ?? '',
+            reserved_stock: data.reserved_stock ?? 0,
+            is_made_to_order: data.is_made_to_order ?? false,
+            monthly_capacity: data.monthly_capacity ?? '',
+            low_stock_threshold: data.low_stock_threshold ?? 5,
             moq: data.moq ?? '',
             lead_time_days: data.lead_time_days ?? ''
           },

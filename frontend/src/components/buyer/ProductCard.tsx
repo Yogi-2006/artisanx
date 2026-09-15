@@ -6,7 +6,7 @@ export default function ProductCard({ product }: { product: any }) {
   const { t } = useTranslation();
     return (
         <Link to={`/product/${product.id}`} className="group h-full flex flex-col">
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-200 transition-all group-hover:shadow-md group-hover:border-brand-dark flex flex-col flex-1">
+            <div className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-outline-variant transition-all group-hover:shadow-md group-hover:border-primary flex flex-col flex-1">
                 <div className="w-full aspect-[4/3] bg-stone-100 relative overflow-hidden shrink-0">
                     {product.main_image ? (
                         <img src={product.main_image} alt={product.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
@@ -17,7 +17,7 @@ export default function ProductCard({ product }: { product: any }) {
                 <div className="p-4 flex flex-col flex-1">
                     <h3 className="font-bold text-stone-800 line-clamp-2 min-h-[40px] leading-tight mb-2">{product.title || 'Untitled Product'}</h3>
                     <div className="flex items-center justify-between mb-3 mt-auto">
-                        <span className="font-extrabold text-lg text-brand-dark">₹{product.price || 0}</span>
+                        <span className="font-extrabold text-lg text-primary">₹{product.price || 0}</span>
                     </div>
                     <div className="flex flex-col gap-1 text-xs text-stone-500 mt-auto pt-3 border-t border-stone-100">
                         <span className="font-bold text-stone-700">{product.artisan_name || t('auth.artisan')}</span>

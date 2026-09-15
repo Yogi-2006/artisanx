@@ -58,8 +58,10 @@ async def search_market_listings(category: str, materials: list[str]) -> list[Ma
     
     all_listings = []
     
+    import asyncio
+    
     async with httpx.AsyncClient() as client:
-        for query in queries:
+        async def fetch(query):
             try:
                 response = await client.get(
                     "https://serpapi.com/search",
@@ -68,37 +70,36 @@ async def search_market_listings(category: str, materials: list[str]) -> list[Ma
                         "q": query,
                         "tbm": "shop",
                         "api_key": settings.SERPAPI_KEY,
-                        "gl": "in", # India
+                        "gl": "in",
                         "hl": "en"
                     },
                     timeout=20.0
                 )
                 if response.status_code == 200:
-                    data = response.json()
-                    shopping_results = data.get("shopping_results", [])
-                    
-                    for item in shopping_results:
-                        title = item.get("title", "")
-                        price_str = item.get("price", "")
-                        source = item.get("source", "Unknown")
-                        url = item.get("product_link") or item.get("link") or ""
-                        
-                        price = clean_price(price_str)
-                        
-                        if title and price > 0 and url:
-                            all_listings.append(MarketListing(
-                                title=title,
-                                price=price,
-                                source=source,
-                                url=url
-                            ))
-                            
+                    return response.json().get("shopping_results", [])
             except httpx.ReadTimeout:
                 print("SerpApi request timed out")
             except Exception as e:
                 print(f"SerpApi Error: {e}")
-                # Don't fail the whole engine
-                pass
+            return []
+            
+        results = await asyncio.gather(*(fetch(q) for q in queries))
+        for shopping_results in results:
+            for item in shopping_results:
+                title = item.get("title", "")
+                price_str = item.get("price", "")
+                source = item.get("source", "Unknown")
+                url = item.get("product_link") or item.get("link") or ""
+                
+                price = clean_price(price_str)
+                
+                if title and price > 0 and url:
+                    all_listings.append(MarketListing(
+                        title=title,
+                        price=price,
+                        source=source,
+                        url=url
+                    ))
                 
     # Deduplicate by URL
     seen_urls = set()

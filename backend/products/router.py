@@ -56,12 +56,93 @@ def route_get_catalogue(
     min_price: float = None,
     max_price: float = None,
     location: str = None,
+    state: str = None,
+    material: str = None,
+    max_moq: int = None,
+    max_lead_time: int = None,
+    in_stock: bool = None,
+    made_to_order: bool = None,
     sort_by: str = "newest",
     page: int = 1,
     per_page: int = 20
 ):
-    return service.get_catalogue(search, category, craft_type, min_price, max_price, location, sort_by, page, per_page)
+    return service.get_catalogue(search, category, craft_type, min_price, max_price, location, state, material, max_moq, max_lead_time, in_stock, made_to_order, sort_by, page, per_page)
 
 @router.get("/catalogue/detail/{product_id}", response_model=schemas.CatalogueDetailResponse)
 def route_get_catalogue_detail(product_id: str):
     return service.get_catalogue_detail(product_id)
+
+@router.get("/variants/{product_id}")
+def route_get_variants(product_id: str, current_user: Any = Depends(get_current_user), token: HTTPAuthorizationCredentials = Depends(security)):
+    auth_client = get_authenticated_client(token.credentials)
+    res = auth_client.table("product_variants").select("*").eq("product_id", product_id).execute()
+    return {"variants": res.data}
+
+@router.put("/variants/{product_id}")
+def route_save_variants(product_id: str, payload: dict, current_user: Any = Depends(get_current_user), token: HTTPAuthorizationCredentials = Depends(security)):
+    auth_client = get_authenticated_client(token.credentials)
+    # verify ownership
+    service.get_product(product_id, current_user["id"], auth_client)
+    
+    # Delete existing
+    auth_client.table("product_variants").delete().eq("product_id", product_id).execute()
+    
+    # Insert new
+    variants = payload.get("variants", [])
+    if variants:
+        for v in variants:
+            v["product_id"] = product_id
+            if "is_new" in v:
+                del v["is_new"]
+            if "id" in v and str(v["id"]).startswith("temp_"):
+                del v["id"]
+                
+        auth_client.table("product_variants").insert(variants).execute()
+        
+    return {"status": "success"}
+
+@router.delete("/variants/{variant_id}")
+def route_delete_variant(variant_id: str, current_user: Any = Depends(get_current_user), token: HTTPAuthorizationCredentials = Depends(security)):
+    auth_client = get_authenticated_client(token.credentials)
+    auth_client.table("product_variants").delete().eq("id", variant_id).execute()
+    return {"status": "success"}
+
+@router.post("/{product_id}/duplicate")
+def route_duplicate_product(product_id: str, current_user: Any = Depends(get_current_user), token: HTTPAuthorizationCredentials = Depends(security)):
+    auth_client = get_authenticated_client(token.credentials)
+    product = service.get_product(product_id, current_user["id"], auth_client)
+    
+    # Remove metadata
+    del product["id"]
+    del product["created_at"]
+    if "updated_at" in product:
+        del product["updated_at"]
+    
+    product["title"] = f"Copy of {product.get('title', 'Product')}"
+    product["status"] = "draft"
+    
+    # Insert new product
+    res = auth_client.table("products").insert(product).execute()
+    new_id = res.data[0]["id"]
+    
+    # Duplicate images
+    img_res = auth_client.table("product_images").select("*").eq("product_id", product_id).execute()
+    if img_res.data:
+        imgs = img_res.data
+        for img in imgs:
+            del img["id"]
+            del img["created_at"]
+            img["product_id"] = new_id
+        auth_client.table("product_images").insert(imgs).execute()
+        
+    # Duplicate variants
+    var_res = auth_client.table("product_variants").select("*").eq("product_id", product_id).execute()
+    if var_res.data:
+        vars = var_res.data
+        for v in vars:
+            del v["id"]
+            del v["created_at"]
+            v["product_id"] = new_id
+        auth_client.table("product_variants").insert(vars).execute()
+        
+    return {"status": "success", "new_product_id": new_id}

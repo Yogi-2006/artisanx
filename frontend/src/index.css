@@ -1,15 +1,45 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-brand-neon: #ccff00;
-  --color-brand-dark: #111111;
-  --color-brand-bg: #f5f5f7;
-  --font-sans: 'Inter', sans-serif;
+  --color-primary: #9a4023;
+  --color-primary-container: #ba5838;
+  --color-on-primary: #ffffff;
+  --color-secondary: #855321;
+  --color-secondary-fixed: #ffdcc0;
+  --color-on-secondary-fixed: #2d1600;
+  --color-tertiary: #166a36;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-fixed: #a3f5b3;
+  --color-surface: #fcf9f8;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-on-surface: #1b1b1c;
+  --color-on-surface-variant: #56423d;
+  --color-outline: #89726b;
+  --color-outline-variant: #dcc1b9;
+
+  --color-brand-bg: var(--color-surface);
+  --color-brand-dark: var(--color-on-surface);
+  
+  --font-sans: 'Plus Jakarta Sans', 'Noto Sans Arabic', system-ui, sans-serif;
+
+  --animate-fade-in: fade-in 0.8s ease-out forwards;
+  --animate-slide-up: slide-up 0.8s ease-out forwards;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 body {
-  @apply bg-brand-bg text-brand-dark font-sans;
+  @apply bg-surface text-on-surface font-sans;
 }
 
 /* Custom horizontal scrollbar hiding for clean UI */

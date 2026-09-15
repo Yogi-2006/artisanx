@@ -11,7 +11,8 @@ import Step2Voice from '../../components/product/Step2Voice';
 import Step3ReviewAI from '../../components/product/Step3ReviewAI';
 import Step4Materials from '../../components/product/Step4Materials';
 import Step5Pricing from '../../components/product/Step5Pricing';
-import Step6Publish from '../../components/product/Step6Publish';
+import Step6Inventory from '../../components/product/Step6Inventory';
+import Step7Publish from '../../components/product/Step7Publish';
 
 const ProductEdit = () => {
     const { id } = useParams<{id: string}>();
@@ -24,6 +25,9 @@ const ProductEdit = () => {
     const isRTL = lang === 'ur';
     const [loading, setLoading] = useState(true);
     const [status, setStatus] = useState('draft');
+    const [reviewStatus, setReviewStatus] = useState('');
+    const [reviewNotes, setReviewNotes] = useState('');
+    const [reviewFlags, setReviewFlags] = useState<string[]>([]);
 
     useEffect(() => {
         if (id) {
@@ -32,6 +36,9 @@ const ProductEdit = () => {
                 try {
                     const { data } = await api.get(`/products/${id}`);
                     setStatus(data.status);
+                    setReviewStatus(data.review_status || '');
+                    setReviewNotes(data.review_notes || '');
+                    setReviewFlags(data.review_flags || []);
                 } catch (e) {
                     console.error(e);
                 }
@@ -57,9 +64,10 @@ const ProductEdit = () => {
             case 1: return <Step1Photo t={t} />;
             case 2: return <Step2Voice t={t} lang={lang} />;
             case 3: return <Step3ReviewAI t={t} />;
-            case 4: return <Step4Materials t={t} isRTL={isRTL} />;
+            case 4: return <Step4Materials t={t} />;
             case 5: return <Step5Pricing t={t} isRTL={isRTL} />;
-            case 6: return <Step6Publish t={t} />;
+            case 6: return <Step6Inventory t={t} />;
+            case 7: return <Step7Publish t={t} />;
             default: return <Step1Photo t={t} />;
         }
     };
@@ -89,13 +97,33 @@ const ProductEdit = () => {
                         </div>
                     </div>
                     <div className="flex gap-1 justify-between">
-                        {[1, 2, 3, 4, 5, 6].map(i => (
+                        {[1, 2, 3, 4, 5, 6, 7].map(i => (
                             <div key={i} className={`h-2 flex-1 rounded-full ${currentStep >= i ? 'bg-brand-dark' : 'bg-stone-200'}`} />
                         ))}
                     </div>
                 </div>
 
                 <div className="p-4">
+                    {reviewStatus === 'needs_changes' && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                            <h3 className="font-bold text-red-800 flex items-center gap-2 mb-2">
+                                <span>⚠️</span> {tGlobal('facilitator.needs_changes') || 'Correction Requested'}
+                            </h3>
+                            {reviewNotes && <p className="text-sm text-red-700 mb-2">{reviewNotes}</p>}
+                            {reviewFlags.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                    {reviewFlags.map(f => (
+                                        <span key={f} className="text-[10px] font-bold px-2 py-0.5 bg-white text-red-600 rounded border border-red-200">
+                                            {tGlobal(`facilitator.flag_${f}`) || f}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            <div className="mt-3 text-xs text-red-600 italic">
+                                Editing any field will automatically mark this product as resubmitted for review.
+                            </div>
+                        </div>
+                    )}
                     {renderStep()}
                 </div>
             </div>

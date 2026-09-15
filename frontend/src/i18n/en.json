@@ -1,25 +1,36 @@
 {
+  "app": {
+    "name": "ArtisanX",
+    "welcome": "Welcome to ArtisanX",
+    "tagline": "Empowering Artisans, Connecting Markets",
+    "get_started": "Get Started",
+    "choose_language": "Choose Language"
+  },
   "welcome": "Welcome",
   "login": "Login",
-  "passport.copied": "Copied!",
-  "passport.share": "Share",
-  "passport.enquire": "Send Enquiry",
-  "passport.artisan_story": "Artisan Story",
-  "verification.self_declared": "Self Declared",
-  "verification.facilitator_reviewed": "Reviewed by Facilitator",
-  "verification.cooperative_verified": "Cooperative Verified",
-  "verification.documentation_pending": "Documentation Pending",
-  "passport.product_details": "Product Details",
-  "passport.moq": "Min. Order",
-  "passport.lead_time": "Lead Time",
-  "passport.stock": "In Stock",
-  "passport.customisation": "Customisation",
-  "passport.yes": "Available",
-  "passport.no": "No",
-  "passport.materials": "Materials",
-  "passport.care": "Care Instructions",
-  "passport.authenticity": "Authenticity Passport",
-  "passport.scan_desc": "Scan this QR code to verify the authenticity and origin of this handcrafted product.",
+  "passport": {
+    "copied": "Copied!",
+    "share": "Share",
+    "enquire": "Send Enquiry",
+    "artisan_story": "Artisan Story",
+    "product_details": "Product Details",
+    "moq": "Min. Order",
+    "lead_time": "Lead Time",
+    "stock": "In Stock",
+    "customisation": "Customisation",
+    "yes": "Available",
+    "no": "No",
+    "materials": "Materials",
+    "care": "Care Instructions",
+    "authenticity": "Authenticity Passport",
+    "scan_desc": "Scan this QR code to verify the authenticity and origin of this handcrafted product."
+  },
+  "verification": {
+    "self_declared": "Self Declared",
+    "facilitator_reviewed": "Reviewed by Facilitator",
+    "cooperative_verified": "Cooperative Verified",
+    "documentation_pending": "Documentation Pending"
+  },
   "enquiry": {
     "must_be_buyer": "You must be logged in as a buyer to send an enquiry.",
     "error_submitting": "Failed to submit enquiry.",
@@ -141,7 +152,17 @@
     "location": "Location",
     "craft_story": "Craft Story",
     "save_profile": "Save Profile",
-    "edit_profile": "Edit Profile"
+    "edit_profile": "Edit Profile",
+    "my_profile": "My Profile",
+    "complete_profile": "Complete Your Profile",
+    "profile_setup": "Profile Setup",
+    "ph_name": "e.g. John Doe",
+    "ph_optional": "Optional",
+    "ph_craft": "e.g. Silk Sarees",
+    "ph_location": "City, State",
+    "ph_years": "e.g. 5",
+    "ph_capacity": "e.g. 50 items/month",
+    "ph_story": "Tell us about your craft..."
   },
   "products": {
     "add_product": "Add Product",
@@ -183,7 +204,17 @@
     "quantity": "Quantity",
     "budget": "Budget",
     "deadline": "Delivery Deadline",
-    "customisation": "Customisation Request"
+    "customisation": "Customisation Request",
+    "discover": "Discover Artisan Craft",
+    "authentic": "Authentic products straight from the creators.",
+    "search_ph": "Search products...",
+    "categories": "Categories",
+    "featured": "Featured",
+    "no_products": "No products available yet.",
+    "filters": "Filters",
+    "sort_by": "Sort By",
+    "newest_first": "Newest First",
+    "no_products_found": "No products found matching your criteria."
   },
   "common": {
     "loading": "Loading...",
@@ -200,7 +231,15 @@
     "products": "Products",
     "enquiries": "Enquiries",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "photos": "Photos",
+    "audio": "Audio",
+    "pricing": "Pricing",
+    "check_back_later": "Check back later",
+    "no_image": "No Image",
+    "enquiry_not_found": "Enquiry not found",
+    "status_response": "Status Response",
+    "note_from_artisan": "Note from Artisan"
   },
   "notifications": {
     "title": "Notifications",
@@ -231,5 +270,22 @@
     "care": "Care instructions",
     "voice_example": "Example: You can say 'This is a handmade wooden bottle made from neem wood. It has a natural brown finish, and can be used for storing water...'",
     "type_placeholder": "Example: Tell us the product name, material, how it is made, size, design and what makes it special..."
+  },
+  "artisan_home": {
+    "welcome": "Welcome",
+    "add_product": "Add New Product",
+    "my_products": "My Products",
+    "enquiries": "Enquiries",
+    "total_prod": "Total Products",
+    "pub_prod": "Live Online",
+    "pending_enq": "Drafts",
+    "next_step": "Needs Your Attention",
+    "recent_enq": "Recent Enquiries",
+    "profile_incomplete": "Profile Incomplete",
+    "complete_now": "Complete Now",
+    "no_enquiries": "No recent enquiries",
+    "next_step_desc": "Upload photos of your latest craft to attract more buyers!",
+    "greeting_prefix": "What would you like to do today?",
+    "see_all": "See all"
   }
 }

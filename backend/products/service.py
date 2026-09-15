@@ -21,6 +21,13 @@ def get_product(product_id: str, artisan_id: str, auth_client: Any):
     if product.get("artisan_id") != artisan_id:
         raise HTTPException(status_code=403, detail="Unauthorized")
         
+    rev_res = auth_client.table("facilitator_reviews").select("review_status, notes, flags").eq("product_id", product_id).execute()
+    if rev_res.data:
+        rev = rev_res.data[0]
+        product["review_status"] = rev.get("review_status")
+        product["review_notes"] = rev.get("notes")
+        product["review_flags"] = rev.get("flags")
+        
     return product
 
 def update_product(product_id: str, product: ProductUpdate, artisan_id: str, auth_client: Any):
@@ -33,6 +40,8 @@ def update_product(product_id: str, product: ProductUpdate, artisan_id: str, aut
         
     res = auth_client.table("products").update(data).eq("id", product_id).execute()
     if res.data and len(res.data) > 0:
+        # If it was flagged by facilitator, mark as resubmitted
+        auth_client.table("facilitator_reviews").update({"review_status": "resubmitted"}).eq("product_id", product_id).eq("review_status", "needs_changes").execute()
         return res.data[0]
     raise HTTPException(status_code=500, detail="Failed to update product")
 
@@ -70,14 +79,25 @@ def get_my_products(artisan_id: str, auth_client: Any, status: str = None, searc
     
     products = res.data or []
     
-    # Optionally attach main image
+    # Optionally attach main image and review status
     if len(products) > 0:
         product_ids = [p["id"] for p in products]
+        
+        # Attach images
         img_res = auth_client.table("product_images").select("product_id, image_url").in_("product_id", product_ids).eq("is_main", True).execute()
         img_map = {img["product_id"]: img["image_url"] for img in (img_res.data or [])}
         
+        # Attach review status
+        review_res = auth_client.table("facilitator_reviews").select("product_id, review_status, notes, flags").in_("product_id", product_ids).execute()
+        review_map = {r["product_id"]: r for r in (review_res.data or [])}
+        
         for p in products:
             p["main_image"] = img_map.get(p["id"])
+            rev = review_map.get(p["id"])
+            if rev:
+                p["review_status"] = rev.get("review_status")
+                p["review_notes"] = rev.get("notes")
+                p["review_flags"] = rev.get("flags")
             
     return products
 
@@ -225,13 +245,19 @@ def get_catalogue(
     min_price: float = None,
     max_price: float = None,
     location: str = None,
+    state: str = None,
+    material: str = None,
+    max_moq: int = None,
+    max_lead_time: int = None,
+    in_stock: bool = None,
+    made_to_order: bool = None,
     sort_by: str = "newest",
     page: int = 1,
     per_page: int = 20
 ):
     from database import supabase_client
     
-    query = supabase_client.table("products").select("id, title, price, category, created_at").eq("status", "published")
+    query = supabase_client.table("products").select("id, title, price, category, created_at, moq, lead_time_days, stock_quantity, is_made_to_order, materials, artisan_id").eq("status", "published")
     
     if search:
         query = query.ilike("title", f"%{search}%")
@@ -241,6 +267,14 @@ def get_catalogue(
         query = query.gte("price", min_price)
     if max_price is not None:
         query = query.lte("price", max_price)
+    if max_moq is not None:
+        query = query.lte("moq", max_moq)
+    if max_lead_time is not None:
+        query = query.lte("lead_time_days", max_lead_time)
+    if in_stock:
+        query = query.gt("stock_quantity", 0)
+    if made_to_order:
+        query = query.eq("is_made_to_order", True)
         
     res = query.execute()
     products = res.data or []
@@ -249,6 +283,11 @@ def get_catalogue(
         return {"items": [], "total": 0, "page": page, "per_page": per_page}
         
     product_ids = [p["id"] for p in products]
+    artisan_ids = list(set([p["artisan_id"] for p in products if p.get("artisan_id")]))
+    
+    # Fetch artisan_profiles for state filtering
+    profiles_res = supabase_client.table("artisan_profiles").select("user_id, state").in_("user_id", artisan_ids).execute()
+    profiles_map = {pr["user_id"]: pr for pr in (profiles_res.data or [])}
     
     # Fetch product_passports to get artisan info and images (since artisan_profiles and product_images lack anon grants)
     passports_res = supabase_client.table("product_passports").select("product_id, passport_data").in_("product_id", product_ids).execute()
@@ -283,14 +322,35 @@ def get_catalogue(
         if location and location.lower() not in (a.get("location") or "").lower():
             continue
             
+        # Check material
+        if material:
+            mats = p.get("materials") or {}
+            mat_list = mats.get("list", []) if isinstance(mats, dict) else (mats if isinstance(mats, list) else [])
+            mat_names = [m.get("name", "").lower() for m in mat_list if isinstance(m, dict)]
+            if material.lower() not in mat_names:
+                continue
+
+        # Check state
+        if state:
+            artisan_profile = profiles_map.get(p.get("artisan_id"), {})
+            p_state = artisan_profile.get("state") or ""
+            if state.lower() != p_state.lower():
+                continue
+
         filtered.append({
             "id": p["id"],
             "title": p.get("title"),
             "main_image": a.get("main_image"),
             "price": p.get("price"),
+            "artisan_id": p.get("artisan_id"),
             "artisan_name": a.get("artisan_name"),
             "location": a.get("location"),
+            "state": profiles_map.get(p.get("artisan_id"), {}).get("state"),
             "craft_type": p.get("category"), # Fallback
+            "moq": p.get("moq"),
+            "lead_time_days": p.get("lead_time_days"),
+            "stock_quantity": p.get("stock_quantity"),
+            "is_made_to_order": p.get("is_made_to_order"),
             "created_at": p.get("created_at")
         })
         
@@ -342,6 +402,7 @@ def get_catalogue_detail(product_id: str):
     if passport_data and passport_data.get("passport_data"):
         data = passport_data["passport_data"]
         artisan = {
+            "id": product.get("artisan_id"),
             "artisan_name": data.get("artisan_name"),
             "location": data.get("craft_location"),
             "craft_story": data.get("artisan_story"),

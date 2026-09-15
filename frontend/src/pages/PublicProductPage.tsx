@@ -40,13 +40,13 @@ export default function PublicProductPage() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-brand-bg"><div className="animate-pulse w-8 h-8 rounded-full bg-stone-300"></div></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-surface-container-lowest"><div className="animate-pulse w-8 h-8 rounded-full bg-stone-300"></div></div>;
   }
 
   if (error || !detail) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-brand-bg p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-sm text-center w-full max-w-sm">
+      <div className="min-h-screen flex items-center justify-center bg-surface-container-lowest p-6">
+        <div className="bg-surface p-8 rounded-3xl shadow-sm text-center w-full max-w-sm border border-outline-variant">
           <h2 className="text-xl font-bold text-red-600 mb-2">Unavailable</h2>
           <p className="text-stone-600">{error}</p>
           <button onClick={() => navigate('/buyer/catalogue')} className="mt-6 px-6 py-2 bg-stone-100 rounded-full font-bold text-stone-700">Back to Catalogue</button>
@@ -87,13 +87,13 @@ export default function PublicProductPage() {
           )}
       </div>
 
-      <div className="px-6 py-6 -mt-6 relative bg-brand-bg rounded-t-3xl">
+      <div className="px-6 py-6 -mt-6 relative bg-surface-container-lowest rounded-t-3xl text-on-surface">
           <div className="flex justify-between items-start mb-2">
               <div>
                   <h1 className="text-2xl font-bold text-stone-800">{product.title}</h1>
-                  <span className="text-xs font-bold text-brand-dark uppercase tracking-wide">{product.category}</span>
+                  <span className="text-xs font-bold text-primary uppercase tracking-wide">{product.category}</span>
               </div>
-              <div className="text-2xl font-bold text-brand-dark">₹{product.price}</div>
+              <div className="text-2xl font-bold text-primary">₹{product.price}</div>
           </div>
           
           <p className="text-stone-600 mt-4 leading-relaxed whitespace-pre-wrap">{product.description}</p>
@@ -144,8 +144,8 @@ export default function PublicProductPage() {
           )}
 
           {artisan && (
-              <div className="mt-8 bg-white border border-stone-200 rounded-2xl p-5 shadow-sm">
-                  <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-green-600" /> Artisan Profile</h3>
+              <div className="mt-8 bg-surface border border-outline-variant rounded-3xl p-5 shadow-sm">
+                  <h3 className="font-bold text-on-surface mb-4 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-green-600" /> Artisan Profile</h3>
                   <div className="flex gap-4 items-center mb-4">
                       <div className="w-16 h-16 rounded-full bg-stone-200 overflow-hidden shrink-0 border border-stone-200">
                           {artisan.profile_photo_url ? (
@@ -157,7 +157,7 @@ export default function PublicProductPage() {
                       <div>
                           <h4 className="font-bold text-stone-800">{artisan.artisan_name}</h4>
                           <div className="text-sm text-stone-500 flex items-center gap-1 mt-1"><MapPin className="w-3 h-3" /> {artisan.location || 'Unknown Location'}</div>
-                          <div className="text-xs text-brand-dark font-bold mt-1 bg-brand-neon px-2 py-0.5 rounded w-max">{artisan.craft_type || t('auth.artisan')}</div>
+                          <div className="text-xs text-on-secondary-container font-bold mt-1 bg-secondary-container px-2 py-0.5 rounded w-max">{artisan.craft_type || t('auth.artisan')}</div>
                       </div>
                   </div>
                   {artisan.craft_story && (
@@ -174,8 +174,8 @@ export default function PublicProductPage() {
           )}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 mobile-shell-width p-4 bg-white/90 backdrop-blur-md border-t border-stone-200 flex gap-3 z-20">
-          <button onClick={handleEnquiry} className="flex-1 py-3 bg-brand-dark text-white rounded-full font-bold shadow-lg hover:bg-stone-800 flex items-center justify-center gap-2 transition-all">
+      <div className="fixed bottom-0 left-0 right-0 mobile-shell-width p-4 bg-surface/90 backdrop-blur-md border-t border-outline-variant flex gap-3 z-20">
+          <button onClick={handleEnquiry} className="flex-1 py-3 bg-primary text-on-primary rounded-full font-bold shadow-lg hover:bg-primary/90 flex items-center justify-center gap-2 transition-all">
               <Mail className="w-5 h-5" /> Send Enquiry
           </button>
       </div>

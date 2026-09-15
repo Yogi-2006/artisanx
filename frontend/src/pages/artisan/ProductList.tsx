@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Edit2, Trash2, ArrowLeft, Copy } from 'lucide-react';
 import api from '../../lib/api';
 import BottomNav from '../../components/BottomNav';
 
@@ -40,13 +40,24 @@ export default function ProductList() {
     }
   };
 
+  const handleDuplicate = async (id: string) => {
+    try {
+      setLoading(true);
+      await api.post(`/products/${id}/duplicate`);
+      fetchProducts();
+    } catch (error) {
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className="w-full relative pb-24 font-sans text-brand-dark bg-brand-bg">
+    <div className="w-full relative pb-24 font-sans text-on-surface bg-surface-container-lowest">
       {/* Header */}
-      <div className="bg-white px-6 pt-10 pb-4 shadow-sm sticky top-0 z-20">
+      <div className="bg-surface px-6 pt-10 pb-4 shadow-sm sticky top-0 z-20">
         <div className="flex items-center space-x-4">
           <button onClick={() => navigate('/artisan')} className="p-2 -ml-2 rounded-full hover:bg-stone-100">
-            <ArrowLeft size={24} className="text-stone-700" />
+            <ArrowLeft size={24} className="text-on-surface" />
           </button>
           <h1 className="text-xl font-bold">{t('common.products')}</h1>
         </div>
@@ -55,19 +66,19 @@ export default function ProductList() {
         <div className="flex mt-6 space-x-6 border-b border-stone-200">
           <button 
             onClick={() => setTab('all')}
-            className={`pb-3 font-bold text-sm ${tab === 'all' ? 'border-b-2 border-brand-dark text-brand-dark' : 'text-stone-400'}`}
+            className={`pb-3 font-bold text-sm ${tab === 'all' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant'}`}
           >
             {t('products.all')}
           </button>
           <button 
             onClick={() => setTab('published')}
-            className={`pb-3 font-bold text-sm ${tab === 'published' ? 'border-b-2 border-brand-dark text-brand-dark' : 'text-stone-400'}`}
+            className={`pb-3 font-bold text-sm ${tab === 'published' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant'}`}
           >
             {t('products.published')}
           </button>
           <button 
             onClick={() => setTab('draft')}
-            className={`pb-3 font-bold text-sm ${tab === 'draft' ? 'border-b-2 border-brand-dark text-brand-dark' : 'text-stone-400'}`}
+            className={`pb-3 font-bold text-sm ${tab === 'draft' ? 'border-b-2 border-primary text-primary' : 'text-on-surface-variant'}`}
           >
             {t('products.drafts')}
           </button>
@@ -90,7 +101,7 @@ export default function ProductList() {
           products.map(product => (
             <div 
               key={product.id} 
-              className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex gap-4 items-center relative overflow-hidden group cursor-pointer"
+              className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant flex gap-4 items-center relative overflow-hidden group cursor-pointer"
               onClick={() => navigate(`/artisan/products/${product.id}/edit`)}
             >
               {/* Thumbnail */}
@@ -98,7 +109,7 @@ export default function ProductList() {
                 {product.main_image ? (
                   <img src={product.main_image} alt={product.title} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-stone-300">No Image</div>
+                  <div className="w-full h-full flex items-center justify-center text-stone-300">{t('common.no_image')}</div>
                 )}
               </div>
 
@@ -138,6 +149,12 @@ export default function ProductList() {
                   <Edit2 size={16} />
                 </button>
                 <button 
+                  onClick={(e) => { e.stopPropagation(); handleDuplicate(product.id); }}
+                  className="p-2 bg-stone-100 rounded-full text-secondary hover:bg-stone-200"
+                >
+                  <Copy size={16} />
+                </button>
+                <button 
                   onClick={(e) => { e.stopPropagation(); setDeleteId(product.id); }}
                   className="p-2 bg-red-50 rounded-full text-red-600 hover:bg-red-100"
                 >
@@ -152,7 +169,7 @@ export default function ProductList() {
       {/* FAB */}
       <button 
         onClick={() => navigate('/artisan/products/new')}
-        className="fixed bottom-24 right-6 w-14 h-14 bg-brand-dark text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform"
+        className="fixed bottom-24 right-6 w-14 h-14 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform"
       >
         <Plus size={24} />
       </button>
@@ -162,7 +179,7 @@ export default function ProductList() {
       {/* Delete Confirmation Modal */}
       {deleteId && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6 backdrop-blur-sm">
-          <div className="bg-white rounded-[32px] p-6 max-w-sm w-full shadow-xl">
+          <div className="bg-surface rounded-3xl p-6 max-w-sm w-full shadow-xl">
             <h2 className="text-xl font-bold mb-2">{t('products.delete_product')}</h2>
             <p className="text-stone-600 mb-8">{t('products.are_you_sure_delete')}</p>
             <div className="flex gap-4">
@@ -174,7 +191,7 @@ export default function ProductList() {
               </button>
               <button 
                 onClick={() => handleDelete(deleteId)}
-                className="flex-1 py-4 font-bold text-white bg-red-500 rounded-2xl"
+                className="flex-1 py-4 font-bold text-white bg-error rounded-2xl"
               >
                 {t('products.delete_confirm')}
               </button>

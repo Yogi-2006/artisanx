@@ -11,6 +11,7 @@ class ImageUploadResponse(BaseModel):
     is_main: bool = False
     enhanced_quality: bool = False
     enhanced_quality_score: Optional[float] = None
+    suggestions: Optional[List[str]] = None
 
 class ImageQualityCheck(BaseModel):
     blur_score: float

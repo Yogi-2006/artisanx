@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { ArrowLeft, ExternalLink, Calendar, Package } from 'lucide-react';
+import { Calendar, Package, ArrowLeft, ExternalLink } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
+import MessagingUI from '../../components/buyer/MessagingUI';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export default function BuyerEnquiryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -41,7 +44,7 @@ export default function BuyerEnquiryDetail() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-accent"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -49,7 +52,7 @@ export default function BuyerEnquiryDetail() {
   if (error || !enquiry) {
     return (
       <div className="p-4">
-        <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 mb-4 hover:text-brand-dark">
+        <button onClick={() => navigate(-1)} className="flex items-center text-on-surface-variant mb-4 hover:text-primary">
           <ArrowLeft className="w-5 h-5 mr-2" />
           {t('common.back', 'Back')}
         </button>
@@ -66,26 +69,26 @@ export default function BuyerEnquiryDetail() {
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <button onClick={() => navigate(-1)} className="flex items-center text-gray-600 hover:text-brand-dark transition-colors">
+        <button onClick={() => navigate(-1)} className="flex items-center text-on-surface-variant hover:text-primary transition-colors">
           <ArrowLeft className="w-5 h-5 mr-2" />
           {t('common.back', 'Back')}
         </button>
       </div>
 
-      <h1 className="text-2xl font-bold text-brand-dark">
+      <h1 className="text-2xl font-bold text-on-surface">
         {t('buyer_enquiry.title', 'Response to your enquiry')}
       </h1>
 
       {/* Product Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        <div className="p-4 border-b border-stone-100 bg-stone-50 flex justify-between items-center">
-          <h2 className="font-bold text-gray-800 flex items-center gap-2">
-            <Package className="w-5 h-5 text-brand-accent" />
+      <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="p-4 border-b border-outline-variant/30 bg-surface-container-lowest flex justify-between items-center">
+          <h2 className="font-bold text-on-surface flex items-center gap-2">
+            <Package className="w-5 h-5 text-primary" />
             {t('buyer_enquiry.product_section', 'Product')}
           </h2>
           <button 
             onClick={() => navigate(`/product/${enquiry.product_id}`)}
-            className="flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="flex items-center text-sm text-primary hover:text-primary/80 font-medium"
           >
             {t('buyer_enquiry.view_product', 'View Product')}
             <ExternalLink className="w-4 h-4 ml-1" />
@@ -105,16 +108,16 @@ export default function BuyerEnquiryDetail() {
               <p className="text-sm text-gray-600 mt-1">Artisan: {enquiry.artisan.display_name}</p>
             )}
             {product?.price && (
-              <p className="text-brand-dark font-medium mt-2">₹{product.price}</p>
+              <p className="text-primary font-medium mt-2">₹{product.price}</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Your Enquiry Section */}
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
-        <div className="p-4 border-b border-stone-100 bg-stone-50">
-          <h2 className="font-bold text-gray-800">{t('buyer_enquiry.your_enquiry', 'Your Enquiry')}</h2>
+      <div className="bg-surface rounded-2xl shadow-sm border border-outline-variant overflow-hidden">
+        <div className="p-4 border-b border-outline-variant/30 bg-surface-container-lowest">
+          <h2 className="font-bold text-on-surface">{t('buyer_enquiry.your_enquiry', 'Your Enquiry')}</h2>
         </div>
         <div className="p-4 space-y-4">
           {enquiry.created_at && (
@@ -133,7 +136,7 @@ export default function BuyerEnquiryDetail() {
             )}
             {enquiry.budget && (
               <div>
-                <p className="text-sm text-gray-500 font-medium">Budget</p>
+                <p className="text-sm text-gray-500 font-medium">{t('common.budget')}</p>
                 <p className="text-gray-900">₹{enquiry.budget}</p>
               </div>
             )}
@@ -145,23 +148,30 @@ export default function BuyerEnquiryDetail() {
               <p className="text-gray-800 whitespace-pre-wrap">{enquiry.customisation_request}</p>
             </div>
           )}
+          
+          {enquiry.buyer_message && (
+            <div className="pt-2 border-t border-stone-50">
+              <p className="text-sm text-gray-500 font-medium mb-1">{t('buyer_enquiry.buyer_message', 'Message to Artisan')}</p>
+              <p className="text-gray-800 whitespace-pre-wrap">{enquiry.buyer_message}</p>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Artisan Response Section */}
-      <div className="bg-brand-dark rounded-2xl shadow-sm overflow-hidden text-white">
-        <div className="p-4 border-b border-white/10 bg-black/20">
+      <div className="bg-primary rounded-2xl shadow-sm overflow-hidden text-on-primary">
+        <div className="p-4 border-b border-on-primary/10 bg-on-primary/5">
           <h2 className="font-bold flex items-center gap-2">
             {t('buyer_enquiry.artisan_response', 'Artisan Response')}
             <span className={`text-xs px-2 py-0.5 rounded-full ${
-              enquiry.status === 'responded' ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white/70'
+              enquiry.status === 'responded' || enquiry.status === 'quote_sent' ? 'bg-secondary-container text-on-secondary-container' : 'bg-on-primary/10 text-on-primary/70'
             }`}>
-              {enquiry.status === 'responded' ? 'Responded' : 'Pending'}
+              {enquiry.status.replace(/_/g, ' ').toUpperCase()}
             </span>
           </h2>
         </div>
         <div className="p-4">
-          {enquiry.status === 'responded' ? (
+          {['responded', 'quote_sent', 'changes_requested', 'accepted', 'rejected'].includes(enquiry.status) ? (
             <div className="space-y-4">
               {enquiry.responded_at && (
                 <div className="flex items-center text-xs text-white/50 mb-2">
@@ -172,18 +182,37 @@ export default function BuyerEnquiryDetail() {
               
               {enquiry.artisan_response && (
                 <div>
-                  <p className="text-sm text-white/70 font-medium mb-1">Status Response</p>
-                  <p className="font-medium text-brand-accent">{t(`enquiry.${enquiry.artisan_response}`)}</p>
+                  <p className="text-sm text-white/70 font-medium mb-1">{t('common.status_response')}</p>
+                  <p className="font-medium text-secondary-container">{t(`enquiry.${enquiry.artisan_response}`)}</p>
                 </div>
               )}
               
               {enquiry.artisan_response_note && (
                 <div>
-                  <p className="text-sm text-white/70 font-medium mb-1">Note from Artisan</p>
+                  <p className="text-sm text-white/70 font-medium mb-1">{t('common.note_from_artisan')}</p>
                   <div className="bg-white/5 p-3 rounded-xl border border-white/10">
                     <p className="whitespace-pre-wrap">{enquiry.artisan_response_note}</p>
                   </div>
                 </div>
+              )}
+              
+              {enquiry.status !== 'pending' && enquiry.status !== 'responded' && (
+                <button 
+                    onClick={() => {
+                        // Assuming the backend has a way to get quotation by enquiry, but for now we might need an endpoint 
+                        // or we can fetch quotations and filter by enquiry_id
+                        axios.get(`${API_URL}/quotations/buyer`, { headers: { Authorization: `Bearer ${token}` } })
+                             .then(res => {
+                                 const quote = res.data.quotations.find((q: any) => q.enquiry_id === id);
+                                 if (quote) navigate(`/buyer/quotations/${quote.id}`);
+                                 else alert("Quotation not found");
+                             })
+                             .catch(err => console.error(err));
+                    }}
+                    className="mt-4 w-full py-3 bg-secondary-container text-on-secondary-container font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-secondary-container/90 transition-colors"
+                >
+                    View Quotation <ExternalLink className="w-4 h-4" />
+                </button>
               )}
             </div>
           ) : (
@@ -192,6 +221,10 @@ export default function BuyerEnquiryDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="mt-8">
+          <MessagingUI enquiryId={id || ""} currentUserId={enquiry.buyer_id || ""} />
       </div>
     </div>
   );

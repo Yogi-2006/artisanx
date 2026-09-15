@@ -65,19 +65,19 @@ export default function InstructionCard({ text, stepNumber, totalSteps, targetRe
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.95 }}
         transition={{ duration: 0.3 }}
-        className="fixed z-50 w-[300px] bg-white rounded-2xl shadow-xl border border-stone-100 p-5 pointer-events-auto"
+        className="fixed z-50 w-[300px] bg-surface rounded-2xl shadow-xl border border-outline-variant p-5 pointer-events-auto"
         style={{ top: position.top, left: position.left }}
       >
         {/* Arrow pointer */}
         <div className={`absolute w-0 h-0 border-[8px] ${arrowClass}`}></div>
 
         <div className="flex items-center justify-between mb-2">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-brand-dark bg-brand-light/20 px-2 py-0.5 rounded-full">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-on-primary-container bg-primary-container px-2 py-0.5 rounded-full">
             Step {stepNumber} of {totalSteps}
           </div>
         </div>
         
-        <p className="text-stone-800 text-sm font-medium leading-relaxed">
+        <p className="text-on-surface text-sm font-medium leading-relaxed">
           {text}
         </p>
       </motion.div>

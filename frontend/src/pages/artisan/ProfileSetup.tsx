@@ -19,10 +19,11 @@ const translations: Record<string, any> = {
 const CRAFT_TYPES = ['Weaving', 'Pottery', 'Woodwork', 'Metalwork', 'Textile', 'Jewelry', 'Leather', 'Bamboo', 'Other'];
 
 export default function ProfileSetup() {
+  const { t } = useTranslation();
   const { i18n } = useTranslation();
   const navigate = useNavigate();
   const lang = i18n.language || 'en';
-  const t = translations[lang] || translations.en;
+  const local_t = translations[lang] || translations.en;
   
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -96,80 +97,80 @@ export default function ProfileSetup() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg p-4 pb-24 font-sans text-brand-dark">
+    <div className="min-h-screen bg-surface-container-lowest p-4 pb-24 font-sans text-on-surface">
       <div className="w-full space-y-6 pt-6">
         
         {/* Header */}
         <div className="flex items-center space-x-4 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-stone-100">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 bg-surface rounded-full flex items-center justify-center shadow-sm border border-outline-variant/30">
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-2xl font-extrabold flex-1 text-center pr-10">Profile Setup</h1>
+          <h1 className="text-2xl font-extrabold flex-1 text-center pr-10">{t('profile.profile_setup')}</h1>
         </div>
 
-        <div className="bg-white rounded-[32px] shadow-sm p-6 border border-stone-100/50">
+        <div className="bg-surface rounded-3xl shadow-sm p-6 border border-outline-variant">
           
           {/* Progress Bar */}
           <div className="flex justify-between items-center mb-8 relative px-2">
              <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-1 bg-stone-100 -z-10 rounded-full">
-               <div className="h-full bg-brand-dark transition-all duration-300 rounded-full" style={{ width: `${((step - 1) / 2) * 100}%` }}></div>
+               <div className="h-full bg-primary transition-all duration-300 rounded-full" style={{ width: `${((step - 1) / 2) * 100}%` }}></div>
              </div>
              {[1, 2, 3].map(i => (
-               <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 shadow-sm ${step >= i ? 'bg-brand-dark text-brand-neon' : 'bg-white border-2 border-stone-100 text-stone-400'}`}>
+                <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors duration-300 shadow-sm ${step >= i ? 'bg-primary text-on-primary' : 'bg-surface border-2 border-outline-variant/30 text-on-surface-variant'}`}>
                  {i}
                </div>
              ))}
           </div>
 
-          <h2 className="text-2xl font-black text-brand-dark mb-6 text-center tracking-tight">
-            {step === 1 ? t.step1 : step === 2 ? t.step2 : t.step3}
+          <h2 className="text-2xl font-black text-on-surface mb-6 text-center tracking-tight">
+            {step === 1 ? local_t.step1 : step === 2 ? local_t.step2 : local_t.step3}
           </h2>
 
           <div className="space-y-4">
             {step === 1 && (
               <div className="space-y-4">
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.artisanName}</label>
-                  <input type="text" value={formData.artisan_name} onChange={e => setFormData({...formData, artisan_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="e.g. John Doe" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.artisanName}</label>
+                  <input type="text" value={formData.artisan_name} onChange={e => setFormData({...formData, artisan_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_name')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.businessName}</label>
-                  <input type="text" value={formData.business_name} onChange={e => setFormData({...formData, business_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="Optional" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.businessName}</label>
+                  <input type="text" value={formData.business_name} onChange={e => setFormData({...formData, business_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_optional')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.craftType}</label>
-                  <select value={formData.craft_type} onChange={e => setFormData({...formData, craft_type: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0">
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.craftType}</label>
+                  <select value={formData.craft_type} onChange={e => setFormData({...formData, craft_type: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0">
                     {CRAFT_TYPES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.craftCategory}</label>
-                  <input type="text" value={formData.craft_category} onChange={e => setFormData({...formData, craft_category: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="e.g. Silk Sarees" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.craftCategory}</label>
+                  <input type="text" value={formData.craft_category} onChange={e => setFormData({...formData, craft_category: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_craft')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.location}</label>
-                  <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="City, State" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.location}</label>
+                  <input type="text" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_location')} />
                 </div>
               </div>
             )}
 
             {step === 2 && (
               <div className="space-y-4">
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.cooperativeName}</label>
-                  <input type="text" value={formData.cooperative_name} onChange={e => setFormData({...formData, cooperative_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="Optional" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.cooperativeName}</label>
+                  <input type="text" value={formData.cooperative_name} onChange={e => setFormData({...formData, cooperative_name: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_optional')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.yearsExp}</label>
-                  <input type="number" value={formData.years_experience} onChange={e => setFormData({...formData, years_experience: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="e.g. 5" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.yearsExp}</label>
+                  <input type="number" value={formData.years_experience} onChange={e => setFormData({...formData, years_experience: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_years')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.prodCap}</label>
-                  <input type="text" value={formData.production_capacity} onChange={e => setFormData({...formData, production_capacity: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0" placeholder="e.g. 50 items/month" />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.prodCap}</label>
+                  <input type="text" value={formData.production_capacity} onChange={e => setFormData({...formData, production_capacity: e.target.value})} className="w-full bg-transparent border-0 p-0 text-on-surface font-bold focus:ring-0" placeholder={t('profile.ph_capacity')} />
                 </div>
-                <div className="bg-brand-bg p-4 rounded-2xl border border-stone-100 focus-within:border-brand-dark focus-within:ring-1 focus-within:ring-brand-dark transition-colors">
-                  <label className="block text-xs font-bold text-stone-500 uppercase tracking-wider mb-1">{t.craftStory}</label>
-                  <textarea rows={4} value={formData.craft_story} onChange={e => setFormData({...formData, craft_story: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0 resize-none" placeholder="Tell us about your craft..." />
+                <div className="bg-surface-container-lowest p-4 rounded-2xl border border-outline-variant/50 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-colors">
+                  <label className="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1">{local_t.craftStory}</label>
+                  <textarea rows={4} value={formData.craft_story} onChange={e => setFormData({...formData, craft_story: e.target.value})} className="w-full bg-transparent border-0 p-0 text-brand-dark font-bold focus:ring-0 resize-none" placeholder={t('profile.ph_story')} />
                 </div>
               </div>
             )}
@@ -184,7 +185,7 @@ export default function ProfileSetup() {
                       <Camera size={48} className="text-stone-300" />
                     )}
                   </div>
-                  <label className="absolute bottom-0 right-0 w-12 h-12 bg-brand-dark text-brand-neon rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-black transition-colors border-2 border-white">
+                  <label className="absolute bottom-0 right-0 w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center cursor-pointer shadow-md hover:bg-primary/90 transition-colors border-2 border-surface">
                     <Upload size={20} />
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoChange} />
                   </label>
@@ -200,17 +201,17 @@ export default function ProfileSetup() {
           <div className="flex justify-between mt-10 pt-6 border-t border-stone-100">
             {step > 1 ? (
               <button onClick={handleBack} className="px-6 py-4 text-stone-500 font-bold flex items-center hover:bg-brand-bg rounded-2xl transition-colors">
-                <ArrowLeft size={20} className="mr-2" /> {t.back}
+                <ArrowLeft size={20} className="mr-2" /> {local_t.back}
               </button>
             ) : <div className="px-6 py-4"></div>}
             
             {step < 3 ? (
-              <button onClick={handleNext} disabled={step === 1 && (!formData.artisan_name || !formData.craft_type || !formData.craft_category || !formData.location)} className="px-8 py-4 bg-brand-dark text-white font-bold flex items-center rounded-2xl hover:bg-black transition-colors disabled:opacity-50">
-                {t.next} <ArrowRight size={20} className="ml-2" />
+              <button onClick={handleNext} disabled={step === 1 && (!formData.artisan_name || !formData.craft_type || !formData.craft_category || !formData.location)} className="px-8 py-4 bg-primary text-on-primary font-bold flex items-center rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50">
+                {local_t.next} <ArrowRight size={20} className="ml-2" />
               </button>
             ) : (
-              <button onClick={handleSubmit} disabled={loading} className="px-8 py-4 bg-brand-neon text-brand-dark font-extrabold flex items-center rounded-2xl hover:bg-[#bfff00] transition-colors disabled:opacity-50 shadow-[0_4px_20px_rgba(204,255,0,0.3)]">
-                {loading ? 'Saving...' : <><Check size={20} className="mr-2" strokeWidth={3} /> {t.complete}</>}
+              <button onClick={handleSubmit} disabled={loading} className="px-8 py-4 bg-primary text-on-primary font-extrabold flex items-center rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-md">
+                {loading ? 'Saving...' : <><Check size={20} className="mr-2" strokeWidth={3} /> {local_t.complete}</>}
               </button>
             )}
           </div>

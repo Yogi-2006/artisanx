@@ -32,6 +32,8 @@ def route_create_enquiry(req: EnquiryCreate, current_user: dict = Depends(get_cu
         "budget": req.budget,
         "delivery_deadline": req.delivery_deadline.isoformat() if req.delivery_deadline else None,
         "customisation_request": req.customisation_request,
+        "buyer_message": req.buyer_message,
+        "requested_variant": req.requested_variant,
         "status": "new"
     }
     

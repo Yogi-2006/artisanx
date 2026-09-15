@@ -1,9 +1,10 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, MessageSquare, Check, X, Search, Calendar, Mic, Square, RotateCcw, CheckCircle, Keyboard } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Check, X, Search, Calendar, FileText } from 'lucide-react';
 import axios from 'axios';
 import { useAuthStore } from '../../stores/authStore';
+import { useQuotationStore } from '../../stores/quotationStore';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -14,25 +15,40 @@ export default function EnquiryDetail() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { token } = useAuthStore();
+  const { createQuotation, sendQuotation } = useQuotationStore();
   
   const [enq, setEnq] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [messaging, setMessaging] = useState(false);
   
   const [responseType, setResponseType] = useState<ResponseType>(null);
   const [note, setNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const [inputMode, setInputMode] = useState<'type'|'voice'>('type');
-  const [isRecording, setIsRecording] = useState(false);
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [timer, setTimer] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [voiceData, setVoiceData] = useState<any>(null);
+  // Quote form state
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [quoteData, setQuoteData] = useState({
+    quantity: 0,
+    unit_price: 0,
+    customization_cost: 0,
+    production_lead_time_days: 7,
+    artisan_notes: ''
+  });
 
-  const mediaRecorder = useRef<MediaRecorder | null>(null);
-  const timerRef = useRef<number | null>(null);
+  const handleMessageBuyer = async () => {
+    setMessaging(true);
+    try {
+      const res = await axios.get(`${API_URL}/conversations/by-enquiry/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      navigate(`/artisan/conversation/${res.data.conversation.id}`);
+    } catch (e) {
+      console.error(e);
+      alert('Could not start conversation');
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchDetail() {
@@ -41,6 +57,11 @@ export default function EnquiryDetail() {
           headers: { Authorization: `Bearer ${token}` }
         });
         setEnq(response.data);
+        setQuoteData(prev => ({
+          ...prev, 
+          quantity: response.data.quantity,
+          unit_price: response.data.products?.price || response.data.products?.suggested_price || 0
+        }));
       } catch (err) {
         console.error(err);
       } finally {
@@ -68,86 +89,42 @@ export default function EnquiryDetail() {
     }
   };
 
-  const startRecording = async () => {
-      try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
-          mediaRecorder.current = recorder;
-          
-          const chunks: BlobPart[] = [];
-          recorder.ondataavailable = (e) => chunks.push(e.data);
-          recorder.onstop = () => {
-              const blob = new Blob(chunks, { type: 'audio/webm' });
-              setAudioBlob(blob);
-              setAudioUrl(URL.createObjectURL(blob));
-          };
-          
-          recorder.start();
-          setIsRecording(true);
-          setTimer(0);
-          timerRef.current = window.setInterval(() => setTimer(t => t + 1), 1000);
-      } catch (err) {
-          console.error("Microphone access denied", err);
-          setErrorMsg(t('enquiry.voice_failed') || "Could not access microphone.");
-      }
-  };
-
-  const stopRecording = () => {
-      if (mediaRecorder.current && isRecording) {
-          mediaRecorder.current.stop();
-          mediaRecorder.current.stream.getTracks().forEach(track => track.stop());
-          setIsRecording(false);
-          if (timerRef.current) clearInterval(timerRef.current);
-      }
-  };
-
-  const handleProcessVoice = async () => {
-      if (!audioBlob) return;
-      setIsProcessing(true);
-      setErrorMsg('');
+  const handleCreateQuote = async () => {
+    setSubmitting(true);
+    try {
+      const quoteRes = await createQuotation({
+        enquiry_id: id,
+        ...quoteData
+      });
+      await sendQuotation(quoteRes.quotation.id);
       
-      try {
-          const formData = new FormData();
-          formData.append('file', audioBlob, 'recording.webm');
-          
-          const uploadRes = await axios.post(`${API_URL}/voice/upload`, formData, {
-              headers: { 
-                  'Content-Type': 'multipart/form-data',
-                  Authorization: `Bearer ${token}`
-              }
-          });
-          const recordId = uploadRes.data.id;
-          
-          const transcribeRes = await axios.post(`${API_URL}/voice/transcribe/${recordId}`, null, {
-              headers: { Authorization: `Bearer ${token}` }
-          });
-          const text = transcribeRes.data.translated_text || transcribeRes.data.original_text;
-          setNote(text);
-          setVoiceData(transcribeRes.data);
-          setInputMode('type'); // switch back to type so they can edit
-      } catch (err: any) {
-          console.error("Voice process error:", err);
-          setErrorMsg(t('enquiry.voice_failed') || "Voice processing failed. You can try again or type your response.");
-      } finally {
-          setIsProcessing(false);
-      }
+      // Update local state to show quote sent
+      setEnq({ ...enq, status: 'quote_sent' });
+      setShowQuoteForm(false);
+    } catch (err) {
+      console.error("Failed to create quote", err);
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-brand-bg"><div className="animate-pulse w-8 h-8 rounded-full bg-stone-300"></div></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-surface-container-lowest"><div className="animate-pulse w-8 h-8 rounded-full bg-stone-300"></div></div>;
   }
 
   if (!enq) {
-    return <div className="min-h-screen flex items-center justify-center bg-brand-bg">Enquiry not found</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-surface-container-lowest text-on-surface">{t('common.enquiry_not_found')}</div>;
   }
 
-  const isResponded = enq.status === 'responded';
+  const isResponded = enq.status !== 'new' && enq.status !== 'viewed';
   const displayResponse = isResponded ? enq.artisan_response : responseType;
 
   return (
-    <div className="min-h-screen bg-brand-bg pb-24">
+    <div className="min-h-screen bg-surface-container-lowest pb-24 text-on-surface">
       {/* Header */}
-      <div className="bg-white px-4 pt-12 pb-4 sticky top-0 z-10 border-b border-stone-200">
+      <div className="bg-surface px-4 pt-12 pb-4 sticky top-0 z-10 border-b border-outline-variant/30">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/artisan/enquiries')} className="text-stone-600 hover:text-stone-900">
             <ArrowLeft className="w-6 h-6" />
@@ -156,41 +133,41 @@ export default function EnquiryDetail() {
         </div>
       </div>
 
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-6 max-w-lg mx-auto">
         {/* Product Info */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex gap-4">
+        <div className="bg-surface rounded-2xl p-4 shadow-sm border border-outline-variant flex gap-4">
           <div className="w-24 h-24 rounded-xl bg-stone-200 overflow-hidden shrink-0 border border-stone-200">
             {enq.products?.images?.[0]?.image_url ? (
               <img src={enq.products.images[0].image_url} alt="Product" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">No Image</div>
+              <div className="w-full h-full flex items-center justify-center text-stone-400 text-xs">{t('common.no_image')}</div>
             )}
           </div>
           <div>
             <h3 className="font-bold text-stone-800 text-lg leading-tight mb-1">{enq.products?.title || 'Product'}</h3>
             <div className="text-sm text-stone-500 mb-2 line-clamp-2">{enq.products?.description}</div>
-            <div className="text-brand-dark font-bold">₹{enq.products?.price || enq.products?.suggested_price || 0}</div>
+            <div className="text-primary font-bold">₹{enq.products?.price || enq.products?.suggested_price || 0}</div>
           </div>
         </div>
 
         {/* Buyer Request Details */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
+        <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant">
           <h3 className="font-bold text-stone-800 mb-4">{t('enquiry.request_details') || 'Request Details'}</h3>
           
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="bg-brand-bg p-3 rounded-xl border border-stone-100">
+            <div className="bg-surface-container p-3 rounded-xl border border-outline-variant/50">
               <div className="text-xs text-stone-500 mb-1">{t('enquiry.quantity') || 'Quantity'}</div>
               <div className="font-bold text-stone-800 text-lg">{enq.quantity}</div>
             </div>
-            <div className="bg-brand-bg p-3 rounded-xl border border-stone-100">
+            <div className="bg-surface-container p-3 rounded-xl border border-outline-variant/50">
               <div className="text-xs text-stone-500 mb-1">{t('enquiry.budget') || 'Budget/Unit'}</div>
               <div className="font-bold text-stone-800 text-lg">{enq.budget ? `₹${enq.budget}` : '-'}</div>
             </div>
           </div>
 
           {enq.delivery_deadline && (
-            <div className="flex items-center gap-3 text-sm text-stone-700 bg-brand-neon p-3 rounded-xl border border-amber-100 mb-4">
-              <Calendar className="w-5 h-5 text-brand-dark shrink-0" />
+            <div className="flex items-center gap-3 text-sm text-on-primary-container bg-primary-container p-3 rounded-xl mb-4">
+              <Calendar className="w-5 h-5 text-primary shrink-0" />
               <div>
                 <span className="font-bold">{t('enquiry.deadline') || 'Delivery Deadline'}:</span> {new Date(enq.delivery_deadline).toLocaleDateString()}
               </div>
@@ -200,15 +177,27 @@ export default function EnquiryDetail() {
           {enq.customisation_request && (
             <div>
               <div className="text-xs font-bold text-stone-500 mb-2 uppercase tracking-wide">{t('enquiry.customisation') || 'Customisation Request'}</div>
-              <p className="text-sm text-stone-700 bg-brand-bg p-3 rounded-xl border border-stone-100 italic leading-relaxed">
+              <p className="text-sm text-on-surface-variant bg-surface-container p-3 rounded-xl border border-outline-variant/50 italic leading-relaxed">
                 "{enq.customisation_request}"
               </p>
+            </div>
+          )}
+
+          {enq.requested_variant && (
+            <div className="mt-4">
+              <div className="text-xs font-bold text-stone-500 mb-2 uppercase tracking-wide">Requested Option / Variant</div>
+              <div className="text-sm text-on-surface-variant bg-surface-container p-3 rounded-xl border border-outline-variant/50 flex flex-col">
+                <span className="font-bold text-stone-800">{enq.requested_variant.type.toUpperCase()}: {enq.requested_variant.value}</span>
+                {enq.requested_variant.price_adjustment > 0 && (
+                   <span className="text-xs text-primary font-bold mt-1">Price impact: +₹{enq.requested_variant.price_adjustment} per unit</span>
+                )}
+              </div>
             </div>
           )}
         </div>
 
         {/* Status Timeline */}
-        <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
+        <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant">
           <h3 className="font-bold text-stone-800 mb-4">{t('enquiry.timeline') || 'Timeline'}</h3>
           <div className="relative pl-6 border-l-2 border-stone-100 space-y-6">
             
@@ -217,20 +206,13 @@ export default function EnquiryDetail() {
               <div className="text-sm font-bold text-stone-800">{t('enquiry.enquiry_received') || 'Enquiry Received'}</div>
               <div className="text-xs text-stone-500 mt-1">{new Date(enq.created_at).toLocaleString()}</div>
             </div>
-            
-            {(enq.status === 'viewed' || enq.status === 'responded') && (
-              <div className="relative">
-                <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full border-4 border-white bg-blue-500"></div>
-                <div className="text-sm font-bold text-stone-800">{t('enquiry.enquiry_viewed') || 'Enquiry Viewed'}</div>
-              </div>
-            )}
 
             {isResponded && (
               <div className="relative">
                 <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full border-4 border-white bg-brand-dark"></div>
                 <div className="text-sm font-bold text-stone-800">{t('enquiry.enquiry_responded') || 'Responded'}</div>
-                <div className="text-xs text-stone-500 mt-1">{new Date(enq.responded_at).toLocaleString()}</div>
-                <div className="mt-2 bg-brand-bg p-3 rounded-xl text-sm text-stone-700">
+                <div className="text-xs text-stone-500 mt-1">{new Date(enq.responded_at || enq.updated_at).toLocaleString()}</div>
+                <div className="mt-2 bg-surface-container p-3 rounded-xl text-sm text-on-surface-variant">
                   <span className="font-bold block mb-1">
                     {enq.artisan_response === 'interested' ? t('enquiry.opt_interested') || 'Interested' : ''}
                     {enq.artisan_response === 'need_details' ? t('enquiry.opt_need_details') || 'Need More Details' : ''}
@@ -240,12 +222,133 @@ export default function EnquiryDetail() {
                 </div>
               </div>
             )}
+            
+            {(enq.status === 'quote_sent' || enq.status === 'accepted') && (
+              <div className="relative">
+                <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full border-4 border-white bg-primary"></div>
+                <div className="text-sm font-bold text-stone-800">Quotation Sent</div>
+              </div>
+            )}
+
+            {enq.status === 'accepted' && (
+              <div className="relative">
+                <div className="absolute -left-[33px] top-1 w-4 h-4 rounded-full border-4 border-white bg-green-500"></div>
+                <div className="text-sm font-bold text-stone-800">Quotation Accepted (Order Created)</div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Action Section */}
+        {/* Quote Form */}
+        {isResponded && enq.artisan_response === 'interested' && enq.status === 'responded' && !showQuoteForm && (
+          <div className="flex gap-2">
+            <button 
+              onClick={handleMessageBuyer}
+              disabled={messaging}
+              className="flex-1 bg-secondary-container hover:bg-secondary-container/80 text-on-secondary-container font-bold py-3 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[20px]">chat</span>
+              {messaging ? 'Opening...' : 'Message Buyer'}
+            </button>
+            <button 
+              onClick={() => setShowQuoteForm(true)}
+              className="flex-1 bg-primary hover:bg-primary-container text-on-primary font-bold py-3 px-4 rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[20px]">request_quote</span>
+              {t('enquiry_detail.create_quote') || 'Create Quotation'}
+            </button>
+          </div>
+        )}
+
+        {showQuoteForm && (
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-primary animate-in fade-in slide-in-from-bottom-4">
+            <h3 className="font-bold text-stone-800 mb-4 flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> Create Quotation
+            </h3>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Quantity</label>
+                <input 
+                  type="number" 
+                  value={quoteData.quantity}
+                  onChange={e => setQuoteData({...quoteData, quantity: parseInt(e.target.value) || 0})}
+                  className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Unit Price (₹)</label>
+                <input 
+                  type="number" 
+                  value={quoteData.unit_price}
+                  onChange={e => setQuoteData({...quoteData, unit_price: parseFloat(e.target.value) || 0})}
+                  className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Customization Cost (₹) (Optional)</label>
+                <input 
+                  type="number" 
+                  value={quoteData.customization_cost}
+                  onChange={e => setQuoteData({...quoteData, customization_cost: parseFloat(e.target.value) || 0})}
+                  className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Production Lead Time (Days)</label>
+                <input 
+                  type="number" 
+                  value={quoteData.production_lead_time_days}
+                  onChange={e => setQuoteData({...quoteData, production_lead_time_days: parseInt(e.target.value) || 0})}
+                  className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1">Notes to Buyer</label>
+                <textarea 
+                  rows={2}
+                  value={quoteData.artisan_notes}
+                  onChange={e => setQuoteData({...quoteData, artisan_notes: e.target.value})}
+                  className="w-full p-3 border border-outline-variant rounded-xl bg-surface focus:ring-2 focus:ring-primary outline-none resize-none" 
+                />
+              </div>
+              
+              <div className="bg-primary-container text-on-primary-container p-4 rounded-xl border border-primary/20">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Subtotal ({quoteData.quantity} × ₹{quoteData.unit_price})</span>
+                  <span>₹{(quoteData.quantity * quoteData.unit_price).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Customization</span>
+                  <span>₹{quoteData.customization_cost.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-black text-lg pt-2 border-t border-primary/20">
+                  <span>Total Order Value</span>
+                  <span>₹{((quoteData.quantity * quoteData.unit_price) + quoteData.customization_cost).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowQuoteForm(false)}
+                className="flex-1 py-3 border border-outline-variant text-stone-700 font-bold rounded-xl"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleCreateQuote}
+                disabled={submitting || quoteData.quantity <= 0 || quoteData.unit_price <= 0}
+                className="flex-[2] py-3 bg-primary text-on-primary font-bold rounded-xl disabled:opacity-50"
+              >
+                {submitting ? 'Sending...' : 'Send Quotation'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Action Section (if not responded) */}
         {!isResponded && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100" data-guide-id="response-options">
+          <div className="bg-surface rounded-2xl p-5 shadow-sm border border-outline-variant" data-guide-id="response-options">
             <h3 className="font-bold text-stone-800 mb-4">{t('enquiry.your_response') || 'Your Response'}</h3>
             
             <div className="space-y-3 mb-6">
@@ -295,100 +398,21 @@ export default function EnquiryDetail() {
                   <label className="block text-sm font-bold text-stone-700">
                     {t('enquiry.add_note') || 'Add a note to the buyer (Optional)'}
                   </label>
-                  <div className="flex gap-2 bg-stone-100 p-1 rounded-xl w-fit">
-                      <button 
-                          onClick={() => setInputMode('type')}
-                          className={`px-4 py-1.5 text-xs rounded-lg font-bold flex items-center gap-1.5 transition-all ${inputMode === 'type' ? 'bg-white shadow-sm text-brand-dark' : 'text-stone-500 hover:text-stone-700'}`}
-                      >
-                          <Keyboard className="w-3.5 h-3.5" /> {t('enquiry.type_response') || 'Type'}
-                      </button>
-                      <button 
-                          onClick={() => setInputMode('voice')}
-                          className={`px-4 py-1.5 text-xs rounded-lg font-bold flex items-center gap-1.5 transition-all ${inputMode === 'voice' ? 'bg-white shadow-sm text-brand-dark' : 'text-stone-500 hover:text-stone-700'}`}
-                      >
-                          <Mic className="w-3.5 h-3.5" /> {t('enquiry.voice_response') || 'Voice'}
-                      </button>
-                  </div>
                 </div>
-
-                {inputMode === 'voice' && !audioBlob && (
-                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-stone-300 rounded-2xl bg-brand-bg mb-4">
-                        <button 
-                            onClick={isRecording ? stopRecording : startRecording}
-                            className={`w-16 h-16 rounded-full flex items-center justify-center text-white shadow-xl transition-all ${
-                                isRecording ? 'bg-red-500 animate-pulse' : 'bg-brand-dark hover:bg-black'
-                            }`}
-                        >
-                            {isRecording ? <Square className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                        </button>
-                        <div className="mt-4 text-center">
-                            {isRecording ? (
-                                <div className="text-red-500 font-mono text-xl font-bold">
-                                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-                                </div>
-                            ) : (
-                                <span className="text-stone-500 font-medium text-sm">{t('enquiry.start_recording') || 'Tap to speak'}</span>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {inputMode === 'voice' && audioBlob && !voiceData && (
-                    <div className="flex flex-col gap-4 bg-brand-bg p-4 rounded-2xl border border-stone-200 mb-4">
-                        <audio src={audioUrl!} controls className="w-full" />
-                        
-                        <div className="flex gap-2">
-                            <button 
-                                onClick={() => { setAudioBlob(null); setAudioUrl(null); }}
-                                className="flex-1 py-2 text-sm border border-stone-300 rounded-xl font-medium flex items-center justify-center gap-2 text-stone-600 hover:bg-stone-100"
-                                disabled={isProcessing}
-                            >
-                                <RotateCcw className="w-4 h-4" /> {t('enquiry.re_record') || 'Re-record'}
-                            </button>
-                            <button 
-                                onClick={handleProcessVoice}
-                                className="flex-1 py-2 text-sm bg-brand-dark text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-black disabled:opacity-50"
-                                disabled={isProcessing}
-                            >
-                                {isProcessing ? (
-                                    <span className="animate-pulse">{t('enquiry.processing_voice') || 'Processing...'}</span>
-                                ) : (
-                                    <><CheckCircle className="w-4 h-4" /> {t('enquiry.use_response') || 'Process Voice'}</>
-                                )}
-                            </button>
-                        </div>
-                        {errorMsg && <div className="text-red-500 text-xs text-center font-bold mt-2">{errorMsg}</div>}
-                    </div>
-                )}
-
-                {voiceData && (
-                  <div className="mb-4 bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <p className="text-xs text-blue-800 font-bold mb-1">{t('enquiry.detected_language') || 'Detected language'}: {voiceData.original_language}</p>
-                    <p className="text-sm text-stone-700 italic">"{voiceData.original_text}"</p>
-                  </div>
-                )}
-
-                {inputMode === 'type' && (
-                  <>
-                    {voiceData && (
-                        <p className="text-xs text-stone-500 font-bold mb-2 uppercase tracking-wide">{t('enquiry.english_response') || 'English response'}</p>
-                    )}
-                    <textarea 
-                      rows={3}
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      placeholder={t('enquiry.add_note_placeholder') || 'Type your message here...'}
-                      className="w-full p-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-brand-dark focus:border-brand-dark outline-none transition-all resize-none text-sm"
-                    ></textarea>
-                  </>
-                )}
+                <textarea 
+                  rows={3}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder={t('enquiry.add_note_placeholder') || 'Type your message here...'}
+                  className="w-full p-3 border border-outline-variant rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all resize-none text-sm bg-surface text-on-surface"
+                ></textarea>
               </div>
             )}
 
             <button 
               onClick={handleRespond}
               disabled={!responseType || submitting}
-              className="w-full py-4 bg-brand-dark hover:bg-stone-800 text-white font-bold rounded-xl transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-primary hover:bg-primary/90 text-on-primary font-bold rounded-full transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {submitting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

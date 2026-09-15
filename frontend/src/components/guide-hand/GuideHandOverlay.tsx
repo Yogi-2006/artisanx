@@ -143,9 +143,9 @@ export default function GuideHandOverlay() {
               initial={{ rotate: -90 }}
               animate={{ rotate: 0 }}
               transition={{ type: 'spring', damping: 10 }}
-              className="bg-white p-6 rounded-full shadow-2xl mb-4"
+              className="bg-surface p-6 rounded-full shadow-2xl mb-4 text-on-surface"
             >
-              <CheckCircle className="w-20 h-20 text-green-500" />
+              <CheckCircle className="w-20 h-20 text-primary" />
             </motion.div>
             <h2 className="text-3xl font-bold text-white tracking-wide">
               {t('guide.completed') || 'Guide Completed!'}
@@ -184,7 +184,7 @@ export default function GuideHandOverlay() {
           )}
 
           <div className="fixed bottom-32 left-0 right-0 flex justify-center z-50">
-            <div className="bg-white/90 backdrop-blur px-6 py-2 rounded-full shadow-lg pointer-events-auto">
+            <div className="bg-surface/90 backdrop-blur px-6 py-2 rounded-full shadow-lg pointer-events-auto">
               <GuideProgress 
                 currentStep={currentStepIndex + 1} 
                 totalSteps={totalSteps} 

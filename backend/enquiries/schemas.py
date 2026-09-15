@@ -8,6 +8,8 @@ class EnquiryCreate(BaseModel):
     budget: Optional[float] = None
     delivery_deadline: Optional[datetime] = None
     customisation_request: Optional[str] = None
+    buyer_message: Optional[str] = None
+    requested_variant: Optional[dict] = None
 
 class EnquiryRespond(BaseModel):
     artisan_response: str

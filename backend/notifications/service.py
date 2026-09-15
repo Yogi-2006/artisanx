@@ -17,9 +17,19 @@ def create_notification(user_id: str, type: str, title: str, message: str, metad
         res = service_client.table("notifications").insert(notif_data).execute()
         return res.data[0] if res.data else None
     except Exception as e:
-        logger.error(f"Failed to create notification for user {user_id}")
+        logger.error(f"Failed to create notification for user {user_id}: {str(e)}")
         # Do not throw to preserve failure isolation
         return None
+
+def notify_facilitators(type: str, title: str, message: str, metadata: Optional[Dict[str, Any]] = None):
+    try:
+        service_client = get_service_client()
+        facs = service_client.table("users").select("id").eq("role", "facilitator").limit(1).execute()
+        if facs.data:
+            fac_id = facs.data[0]["id"]
+            create_notification(fac_id, type, title, message, metadata)
+    except Exception as e:
+        logger.error(f"Failed to notify facilitators: {str(e)}")
 
 def get_notifications(token: str) -> List[Dict]:
     client = get_authenticated_client(token)

@@ -21,6 +21,7 @@ interface AuthState {
     loginWithEmail: (email: string, password: string) => Promise<void>;
     registerWithEmail: (email: string, password: string, role?: 'artisan' | 'buyer' | 'facilitator') => Promise<void>;
     setRole: (role: 'artisan' | 'buyer' | 'facilitator') => Promise<void>;
+    updateProfile: (data: Record<string, any>) => Promise<void>;
     logout: () => void;
     checkAuth: (isRetry?: boolean) => Promise<void>;
     language: string;
@@ -112,6 +113,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             set({ user: data });
         } catch (error: any) {
             set({ error: error.response?.data?.detail || error.message || 'Failed to set role' });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    updateProfile: async (profileData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const { data } = await api.post('/auth/update-profile', profileData);
+            set((state) => ({ user: { ...state.user, ...data } }));
+        } catch (error: any) {
+            set({ error: error.response?.data?.detail || error.message || 'Failed to update profile' });
+            throw error;
         } finally {
             set({ isLoading: false });
         }
