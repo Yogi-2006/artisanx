@@ -81,7 +81,7 @@ export default function CataloguePage() {
     };
 
     return (
-        <div className="w-full relative pb-20 bg-surface-container-lowest min-h-screen">
+        <div className="max-w-md mx-auto relative pb-20 bg-surface-container-lowest min-h-screen shadow-2xl overflow-hidden border-x border-outline-variant/30">
             <div className="bg-surface px-6 py-4 sticky top-0 z-10 shadow-sm flex flex-col gap-4">
                 <div className="flex gap-3">
                     <form onSubmit={handleSearchSubmit} className="relative flex-1">
@@ -226,7 +226,7 @@ export default function CataloguePage() {
             <div className="p-6">
                 {products.length > 0 ? (
                     <>
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                             {products.map((p: any) => <ProductCard key={p.id} product={p} />)}
                         </div>
                         {hasMore && (

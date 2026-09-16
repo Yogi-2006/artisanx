@@ -39,10 +39,10 @@ def seed_guidance_workflows(user: dict = Depends(get_current_user)):
             
             # Use workflow_id and step_order as a unique combination to update if no ID is present,
             # but since step IDs aren't in WORKFLOWS dict, we'll fetch existing by workflow_id and step_order
-            existing_step = client.table("guidance_steps").select("id").eq("workflow_id", workflow["id"]).eq("step_order", step["step_order"]).maybe_single().execute()
+            existing_step = client.table("guidance_steps").select("id").eq("workflow_id", workflow["id"]).eq("step_order", step["step_order"]).limit(1).execute()
             
             if existing_step.data:
-                client.table("guidance_steps").update(step_data).eq("id", existing_step.data["id"]).execute()
+                client.table("guidance_steps").update(step_data).eq("id", existing_step.data[0]["id"]).execute()
             else:
                 client.table("guidance_steps").insert(step_data).execute()
                 
@@ -51,13 +51,13 @@ def seed_guidance_workflows(user: dict = Depends(get_current_user)):
 @router.get("/workflows/{workflow_id}", response_model=GuidanceWorkflowSchema)
 def get_workflow(workflow_id: str, user: dict = Depends(get_current_user)):
     client = get_service_client()
-    wf_res = client.table("guidance_workflows").select("*").eq("id", workflow_id).maybe_single().execute()
+    wf_res = client.table("guidance_workflows").select("*").eq("id", workflow_id).limit(1).execute()
     if not wf_res.data:
         raise HTTPException(status_code=404, detail="Workflow not found")
         
     steps_res = client.table("guidance_steps").select("*").eq("workflow_id", workflow_id).order("step_order").execute()
     
-    workflow_data = dict(wf_res.data)
+    workflow_data = dict(wf_res.data[0])
     workflow_data["name"] = workflow_data.get("workflow_key", "")
     workflow_data["steps"] = steps_res.data
     
@@ -71,11 +71,11 @@ def get_current_guidance(screen: str = Query(...), user: dict = Depends(get_curr
         
     # Fetch workflow object to return
     client = get_service_client()
-    wf_res = client.table("guidance_workflows").select("*").eq("id", workflow_id).maybe_single().execute()
+    wf_res = client.table("guidance_workflows").select("*").eq("id", workflow_id).limit(1).execute()
     steps_res = client.table("guidance_steps").select("*").eq("workflow_id", workflow_id).order("step_order").execute()
     
     if wf_res.data:
-        workflow_data = dict(wf_res.data)
+        workflow_data = dict(wf_res.data[0])
         workflow_data["name"] = workflow_data.get("workflow_key", "")
         workflow_data["steps"] = steps_res.data
         return {"workflow": workflow_data}

@@ -113,7 +113,8 @@
     "enq_status_new": "New",
     "enq_status_viewed": "Viewed",
     "enq_status_responded": "Responded",
-    "enq_status_closed": "Closed"
+    "enq_status_closed": "Closed",
+    "activity_log": "Activity Log"
   },
   "guide": {
     "skip": "Skip Guide",

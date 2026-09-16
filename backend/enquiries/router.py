@@ -23,6 +23,9 @@ def route_create_enquiry(req: EnquiryCreate, current_user: dict = Depends(get_cu
     artisan_id = product_res.data[0]["artisan_id"]
     product_title = product_res.data[0]["title"]
     
+    customisation_request = req.customisation_request or None
+    buyer_message = req.buyer_message or None
+    
     # Insert enquiry
     enq_data = {
         "product_id": req.product_id,
@@ -31,8 +34,8 @@ def route_create_enquiry(req: EnquiryCreate, current_user: dict = Depends(get_cu
         "quantity": req.quantity,
         "budget": req.budget,
         "delivery_deadline": req.delivery_deadline.isoformat() if req.delivery_deadline else None,
-        "customisation_request": req.customisation_request,
-        "buyer_message": req.buyer_message,
+        "customisation_request": customisation_request,
+        "buyer_message": buyer_message,
         "requested_variant": req.requested_variant,
         "status": "new"
     }

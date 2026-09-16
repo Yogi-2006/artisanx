@@ -76,11 +76,30 @@ def transcribe_and_translate(record_id: str, artisan_id: str, token: str):
         Keep the translation natural and professional, not word-for-word literal.
         """
         
-        result_json = process_audio_and_generate(temp_path, prompt, mime_type="application/json")
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "detected_language": {"type": "STRING"},
+                "original_text": {"type": "STRING"},
+                "english_translation": {"type": "STRING"}
+            },
+            "required": ["detected_language", "original_text", "english_translation"]
+        }
+        
+        result_json = process_audio_and_generate(temp_path, prompt, mime_type="application/json", response_schema=schema)
         os.remove(temp_path)
         
+        # Clean potential markdown JSON block
+        cleaned_json = result_json.strip()
+        if cleaned_json.startswith("```json"):
+            cleaned_json = cleaned_json[7:]
+        if cleaned_json.endswith("```"):
+            cleaned_json = cleaned_json[:-3]
+        cleaned_json = cleaned_json.strip()
+
+        
         try:
-            data = json.loads(result_json)
+            data = json.loads(cleaned_json)
         except Exception:
             raise HTTPException(status_code=500, detail="Failed to parse Gemini response")
             
@@ -161,9 +180,19 @@ def process_voice_directly(file: UploadFile, product_id: str, artisan_id: str, t
         }
         Keep the translation natural and professional, not word-for-word literal.
         """
-        result_json = process_audio_and_generate(temp_path, prompt, mime_type="application/json")
+        schema = {
+            "type": "OBJECT",
+            "properties": {
+                "detected_language": {"type": "STRING"},
+                "original_text": {"type": "STRING"},
+                "english_translation": {"type": "STRING"}
+            },
+            "required": ["detected_language", "original_text", "english_translation"]
+        }
+        
+        result_json = process_audio_and_generate(temp_path, prompt, mime_type="application/json", response_schema=schema)
         os.remove(temp_path)
-        print("Gemini response:", result_json)
+        # print("Gemini response:", result_json)
         
         # Clean potential markdown JSON block
         cleaned_json = result_json.strip()

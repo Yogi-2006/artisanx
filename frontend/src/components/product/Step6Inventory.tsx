@@ -52,8 +52,10 @@ const Step6Inventory = ({ t }: { t: any }) => {
     const handleSaveAndNext = async () => {
         await saveDraft();
         
+        const currentDraftId = useProductStore.getState().draftId;
+        
         // Save variants
-        if (draftId && variants.length > 0) {
+        if (currentDraftId && variants.length > 0) {
             try {
                 const variantsToSave = variants.map(v => ({
                     type: v.type,
@@ -62,13 +64,13 @@ const Step6Inventory = ({ t }: { t: any }) => {
                     price_adjustment: v.price_adjustment || 0
                 }));
                 // We'll replace all variants for simplicity, assuming a PUT replaces them
-                await api.put(`/products/variants/${draftId}`, { variants: variantsToSave });
+                await api.put(`/products/variants/${currentDraftId}`, { variants: variantsToSave });
             } catch (err) {
                 console.error("Failed to save variants", err);
             }
-        } else if (draftId && variants.length === 0) {
+        } else if (currentDraftId && variants.length === 0) {
             try {
-                await api.put(`/products/variants/${draftId}`, { variants: [] });
+                await api.put(`/products/variants/${currentDraftId}`, { variants: [] });
             } catch (err) {
                 console.error(err);
             }

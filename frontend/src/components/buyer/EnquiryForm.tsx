@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, CheckCircle } from 'lucide-react';
 import axios from 'axios';
+import api from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
+
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -26,10 +28,10 @@ export default function EnquiryForm({ productId, moq, onClose }: EnquiryFormProp
   const [selectedVariantId, setSelectedVariantId] = useState<string>('');
   
   React.useEffect(() => {
-    // Fetch variants
-    const fetchVariants = async () => {
+    // Fetch variants using authenticated api client
+      const fetchVariants = async () => {
       try {
-        const res = await axios.get(`${API_URL}/products/variants/${productId}`);
+        const res = await api.get(`/products/variants/${productId}`);
         if (res.data.variants) {
           setVariants(res.data.variants);
         }
@@ -39,6 +41,7 @@ export default function EnquiryForm({ productId, moq, onClose }: EnquiryFormProp
     };
     fetchVariants();
   }, [productId]);
+
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);

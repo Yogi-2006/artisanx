@@ -15,19 +15,19 @@ def check_guidance_needed(user_id: str, screen: str) -> Optional[str]:
     client = get_service_client()
     
     # 1. Check if user is an artisan
-    user_res = client.table("users").select("role").eq("id", user_id).single().execute()
-    if not user_res.data or user_res.data.get("role") != "artisan":
+    user_res = client.table("users").select("role").eq("id", user_id).limit(1).execute()
+    if not user_res.data or user_res.data[0].get("role") != "artisan":
         return None
 
     # Check for Profile Setup (if on home or profile screen)
     if screen in ["artisan_home", "profile_setup"]:
         # Check if profile is incomplete
-        profile_res = client.table("artisan_profiles").select("artisan_name, craft_category, location, craft_story").eq("user_id", user_id).maybe_single().execute()
+        profile_res = client.table("artisan_profiles").select("artisan_name, craft_category, location, craft_story").eq("user_id", user_id).limit(1).execute()
         
-        if not profile_res.data or not all(profile_res.data.values()):
+        if not profile_res.data or not all(profile_res.data[0].values()):
             # Verify they haven't dismissed it
-            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", PROFILE_SETUP_ID).maybe_single().execute()
-            if not prog_res.data or (prog_res.data.get("status") != "completed" and not prog_res.data.get("dont_show_again")):
+            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", PROFILE_SETUP_ID).limit(1).execute()
+            if not prog_res.data or (prog_res.data[0].get("status") != "completed" and not prog_res.data[0].get("dont_show_again")):
                 return PROFILE_SETUP_ID
 
     # Check for First Product Upload (if on home or product create screen)
@@ -35,16 +35,16 @@ def check_guidance_needed(user_id: str, screen: str) -> Optional[str]:
         products_res = client.table("products").select("id", count="exact").eq("artisan_id", user_id).execute()
         if products_res.count == 0:
             # Verify they haven't dismissed it
-            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", FIRST_PRODUCT_ID).maybe_single().execute()
-            if not prog_res.data or (prog_res.data.get("status") != "completed" and not prog_res.data.get("dont_show_again")):
+            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", FIRST_PRODUCT_ID).limit(1).execute()
+            if not prog_res.data or (prog_res.data[0].get("status") != "completed" and not prog_res.data[0].get("dont_show_again")):
                 return FIRST_PRODUCT_ID
 
     # Check for Enquiry Response (if on enquiry list)
     if screen in ["enquiry_list"]:
         enquiries_res = client.table("buyer_enquiries").select("id").eq("artisan_id", user_id).eq("status", "pending").execute()
         if len(enquiries_res.data) > 0:
-            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", ENQUIRY_RESPONSE_ID).maybe_single().execute()
-            if not prog_res.data or (prog_res.data.get("status") != "completed" and not prog_res.data.get("dont_show_again")):
+            prog_res = client.table("user_guidance_progress").select("status, dont_show_again").eq("user_id", user_id).eq("workflow_id", ENQUIRY_RESPONSE_ID).limit(1).execute()
+            if not prog_res.data or (prog_res.data[0].get("status") != "completed" and not prog_res.data[0].get("dont_show_again")):
                 return ENQUIRY_RESPONSE_ID
 
     return None
@@ -64,7 +64,7 @@ def log_guidance_event(user_id: str, event_type: str, workflow_id: str, step_id:
 def upsert_guidance_progress(user_id: str, workflow_id: str, status: str, step_id: Optional[str] = None):
     client = get_service_client()
     # Check if exists
-    prog = client.table("user_guidance_progress").select("id").eq("user_id", user_id).eq("workflow_id", workflow_id).maybe_single().execute()
+    prog = client.table("user_guidance_progress").select("id").eq("user_id", user_id).eq("workflow_id", workflow_id).limit(1).execute()
     
     data = {
         "user_id": user_id,
@@ -84,6 +84,6 @@ def upsert_guidance_progress(user_id: str, workflow_id: str, status: str, step_i
         data['last_shown_at'] = now
 
     if prog.data:
-        client.table("user_guidance_progress").update(data).eq("id", prog.data["id"]).execute()
+        client.table("user_guidance_progress").update(data).eq("id", prog.data[0]["id"]).execute()
     else:
         client.table("user_guidance_progress").insert(data).execute()

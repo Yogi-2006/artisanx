@@ -15,6 +15,9 @@ export default function FacilitatorArtisanProfile() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('Overview');
   
+  const [verificationStatus, setVerificationStatus] = useState<string>('');
+  const [updatingVerification, setUpdatingVerification] = useState(false);
+  
   const [showSupportModal, setShowSupportModal] = useState(false);
   const [supportType, setSupportType] = useState('Pricing Help');
   const [supportMessage, setSupportMessage] = useState('');
@@ -28,6 +31,7 @@ export default function FacilitatorArtisanProfile() {
           api.get(`/facilitator/artisans/${id}/performance`)
         ]);
         setArtisan({ ...artisanRes.data, performance: perfRes.data });
+        setVerificationStatus(artisanRes.data.status || '');
       } catch (err) {
         console.error(err);
       } finally {
@@ -36,6 +40,21 @@ export default function FacilitatorArtisanProfile() {
     }
     if (token && id) fetchData();
   }, [id, token]);
+
+  const handleUpdateVerification = async () => {
+    if (!verificationStatus || verificationStatus === artisan.status) return;
+    setUpdatingVerification(true);
+    try {
+      await api.put(`/facilitator/artisans/${id}/verification`, { status: verificationStatus });
+      setArtisan({ ...artisan, status: verificationStatus });
+      alert('Verification status updated successfully!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update verification status.');
+    } finally {
+      setUpdatingVerification(false);
+    }
+  };
 
   const handleOfferSupport = async () => {
     if (!supportMessage.trim()) return;
@@ -174,6 +193,29 @@ export default function FacilitatorArtisanProfile() {
               </div>
             </section>
 
+            <section className="bg-surface rounded-3xl p-6 border border-outline-variant/50 shadow-sm">
+              <h3 className="text-lg font-bold text-stone-800 mb-4">Verification Status</h3>
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                <select
+                  value={verificationStatus}
+                  onChange={(e) => setVerificationStatus(e.target.value)}
+                  className="flex-1 bg-surface-container-lowest border border-outline-variant/50 rounded-xl px-4 py-3 outline-none focus:border-primary text-sm font-medium"
+                >
+                  <option value="self_declared">Self Declared</option>
+                  <option value="documentation_pending">Documentation Pending</option>
+                  <option value="facilitator_reviewed">Facilitator Reviewed</option>
+                  <option value="cooperative_verified">Cooperative Verified</option>
+                </select>
+                <button 
+                  onClick={handleUpdateVerification}
+                  disabled={updatingVerification || verificationStatus === artisan.status}
+                  className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[140px]"
+                >
+                  {updatingVerification ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Update Status'}
+                </button>
+              </div>
+            </section>
+
             <section className="bg-green-50 rounded-3xl p-6 border border-green-100 flex flex-col items-center text-center">
               <h3 className="text-lg font-bold text-stone-800 mb-2">Guide/Support</h3>
               <p className="text-sm text-stone-600 mb-4 italic">"I create pottery that carries the stories of my village and our traditions."</p>
@@ -217,10 +259,55 @@ export default function FacilitatorArtisanProfile() {
           </div>
         )}
 
-        {(activeTab === 'Orders' || activeTab === 'Reviews') && (
-           <div className="text-center text-stone-500 py-12">
-             Coming soon for this view.
-           </div>
+        {activeTab === 'Orders' && (
+          <div className="space-y-4">
+             {(!artisan.completed_orders || artisan.completed_orders.length === 0) ? (
+              <div className="text-center text-stone-500 bg-surface rounded-3xl p-6 border border-outline-variant">
+                No orders found.
+              </div>
+            ) : (
+              artisan.completed_orders.map((o: any) => (
+                <div key={o.id} className="bg-surface rounded-3xl shadow-sm border border-outline-variant/50 p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-bold text-stone-800">Order #{o.id.slice(0, 8)}</div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 uppercase">
+                      {o.status}
+                    </span>
+                  </div>
+                  <div className="text-sm text-stone-600 mb-1">
+                    <span className="font-semibold">Buyer:</span> {o.buyer?.display_name || 'Unknown'}
+                  </div>
+                  <div className="text-xs text-stone-500">
+                    {new Date(o.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'Reviews' && (
+          <div className="space-y-4">
+             {(!artisan.buyer_feedback || artisan.buyer_feedback.length === 0) ? (
+              <div className="text-center text-stone-500 bg-surface rounded-3xl p-6 border border-outline-variant">
+                No reviews yet.
+              </div>
+            ) : (
+              artisan.buyer_feedback.map((r: any) => (
+                <div key={r.id} className="bg-surface rounded-3xl shadow-sm border border-outline-variant/50 p-4">
+                  <div className="flex items-center gap-1 mb-2">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <Star key={star} className={`w-4 h-4 ${star <= (r.rating_overall || 0) ? 'text-yellow-400 fill-current' : 'text-stone-200'}`} />
+                    ))}
+                  </div>
+                  <div className="text-sm text-stone-700 mb-2 font-medium">"{r.review_text}"</div>
+                  <div className="text-xs text-stone-500">
+                    By {r.buyer?.display_name || 'Buyer'} • {new Date(r.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
 

@@ -116,8 +116,7 @@ export default function FacilitatorHome() {
              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
               <Package className="w-4 h-4" />
             </div>
-            {/* Using arbitrary number for active orders if not in stats, though we can calculate or pass from backend */}
-            <div className="text-xl font-bold text-stone-800 leading-none">28</div>
+            <div className="text-xl font-bold text-stone-800 leading-none">{stats?.active_orders || 0}</div>
             <div className="text-[10px] text-stone-500 font-bold text-center leading-tight">Active<br/>Orders</div>
           </div>
 
@@ -160,7 +159,7 @@ export default function FacilitatorHome() {
                       {act.action_type.replace(/_/g, ' ')}
                     </h4>
                     <p className="text-xs text-stone-500 line-clamp-1">{act.details || 'System update'}</p>
-                    <div className="text-[10px] text-stone-400 mt-1">Just now</div>
+                    <div className="text-[10px] text-stone-400 mt-1">{new Date(act.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
               ))

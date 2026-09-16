@@ -116,7 +116,7 @@ export default function BuyerQuotationDetail() {
                             <div>
                                 <h3 className="font-bold">{quotation.products?.title || 'Product'}</h3>
                                 <p className="text-sm text-stone-500">Artisan: {quotation.artisan?.display_name}</p>
-                                {quotation.agreed_variant && <p className="text-xs text-primary bg-primary-container inline-block px-2 py-1 rounded mt-1">{quotation.agreed_variant}</p>}
+                                {quotation.variant_snapshot && <p className="text-xs text-primary bg-primary-container inline-block px-2 py-1 rounded mt-1">{quotation.variant_snapshot.type}: {quotation.variant_snapshot.value}</p>}
                             </div>
                         </div>
                         

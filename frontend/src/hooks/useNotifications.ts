@@ -21,7 +21,7 @@ export function useNotifications() {
         if (!isAuthenticated || !token) return;
         
         try {
-            const res = await fetch('http://localhost:8000/notifications', {
+            const res = await fetch('http://localhost:8000/notifications/', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {

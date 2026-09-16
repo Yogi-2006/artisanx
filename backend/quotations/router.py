@@ -33,12 +33,12 @@ def create_quotation(req: QuotationCreate, current_user: dict = Depends(get_curr
     # 1. Insert header
     q_data = {
         "display_id": display_id,
-        "enquiry_id": req.enquiry_id,
+        "enquiry_id": str(req.enquiry_id),
         "product_id": enquiry["product_id"],
         "buyer_id": enquiry["buyer_id"],
         "artisan_id": current_user["id"],
         "current_version": 1,
-        "agreed_variant": enquiry.get("requested_variant"),
+        "variant_snapshot": enquiry.get("requested_variant"),
         "status": "draft"
     }
     
@@ -145,7 +145,7 @@ def accept_quotation(id: str, current_user: dict = Depends(get_current_user), to
         "title": quotation.get("products", {}).get("title", ""),
         "category": quotation.get("products", {}).get("category", ""),
         "image_url": img_url,
-        "variant": quotation.get("agreed_variant"),
+        "variant": quotation.get("variant_snapshot"),
         "agreed_unit_price": revision["unit_price"],
         "quantity": revision["quantity"]
     }

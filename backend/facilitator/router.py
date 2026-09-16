@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
 from auth.dependencies import security
-from database import get_authenticated_client
+from database import get_authenticated_client, get_service_client
 from .schemas import ReviewSubmitRequest, VerificationUpdateRequest
 from datetime import datetime
 from .service import log_facilitator_activity
@@ -49,6 +49,10 @@ def get_stats(token: HTTPAuthorizationCredentials = Depends(security)):
     delayed_res = client.table("orders").select("id", count="exact").lt("expected_dispatch_date", datetime.utcnow().isoformat()).not_.in_("status", ["dispatched", "delivered", "completed", "cancelled"]).execute()
     delayed_orders = delayed_res.count if delayed_res.count else 0
     
+    # Active orders
+    active_res = client.table("orders").select("id", count="exact").in_("status", ["confirmed", "in_production", "ready_for_dispatch"]).execute()
+    active_orders = active_res.count if active_res.count else 0
+    
     return {
         "total_artisans": artisans_count or 0,
         "incomplete_profiles": incomplete,
@@ -60,7 +64,8 @@ def get_stats(token: HTTPAuthorizationCredentials = Depends(security)):
         "pending_enquiries": pending_enq or 0,
         "open_support_requests": open_support_reqs or 0,
         "open_disputes": open_disputes or 0,
-        "delayed_orders": delayed_orders
+        "delayed_orders": delayed_orders,
+        "active_orders": active_orders
     }
 
 @router.get("/artisans")
@@ -110,6 +115,12 @@ def get_artisan(id: str, token: HTTPAuthorizationCredentials = Depends(security)
     # Get products
     prods = client.table("products").select("id, title, status, readiness_score, price, product_images(image_url)").eq("artisan_id", id).execute()
     
+    # Get completed orders
+    orders_res = client.table("orders").select("id, status, created_at, buyer:users!buyer_id(display_name)").eq("artisan_id", id).eq("status", "completed").execute()
+    
+    # Get buyer feedback
+    reviews_res = get_service_client().table("buyer_reviews").select("id, rating_overall, review_text, created_at, buyer:users!buyer_id(display_name)").eq("artisan_id", id).execute()
+    
     # Empty states for unavailable data
     return {
         "id": u["id"],
@@ -120,8 +131,8 @@ def get_artisan(id: str, token: HTTPAuthorizationCredentials = Depends(security)
         "story": prof.get("craft_story"),
         "location": prof.get("location"),
         "products": prods.data,
-        "completed_orders": [], # Not implemented yet
-        "buyer_feedback": [], # Not implemented yet
+        "completed_orders": orders_res.data or [],
+        "buyer_feedback": reviews_res.data or [],
         "documents": [] # Not implemented yet
     }
 
@@ -272,11 +283,11 @@ def get_artisan_performance(id: str, token: HTTPAuthorizationCredentials = Depen
     on_time_completion = "Not enough data"
     
     # Reviews
-    reviews_res = client.table("buyer_reviews").select("rating").eq("artisan_id", id).execute()
+    reviews_res = get_service_client().table("buyer_reviews").select("rating_overall").eq("artisan_id", id).execute()
     reviews = reviews_res.data or []
     avg_rating = "Not enough data"
     if reviews:
-        avg_rating = round(sum(r["rating"] for r in reviews) / len(reviews), 1)
+        avg_rating = round(sum(r["rating_overall"] for r in reviews) / len(reviews), 1)
         
     # Disputes
     disputes_res = client.table("disputes").select("id").eq("artisan_id", id).eq("status", "open").execute()

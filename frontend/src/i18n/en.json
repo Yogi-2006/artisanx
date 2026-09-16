@@ -43,6 +43,8 @@
     "deadline": "Delivery Deadline (Optional)",
     "customisation": "Customisation Request (Optional)",
     "customisation_placeholder": "Describe any specific changes or requirements...",
+    "buyer_message": "Message to Artisan (Optional)",
+    "buyer_message_placeholder": "Introduce yourself or ask a question...",
     "send_btn": "Send Enquiry",
     "list_title": "Enquiries",
     "tab_all": "All",
@@ -124,7 +126,8 @@
     "enq_status_new": "New",
     "enq_status_viewed": "Viewed",
     "enq_status_responded": "Responded",
-    "enq_status_closed": "Closed"
+    "enq_status_closed": "Closed",
+    "activity_log": "Activity Log"
   },
   "guide": {
     "skip": "Skip Guide",

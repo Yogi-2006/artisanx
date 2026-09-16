@@ -163,13 +163,14 @@ export default function ProfilePage() {
           
           <div className="w-full h-px bg-outline-variant/20 ml-12"></div>
 
-          <button onClick={() => { logout(); navigate('/login'); }} className="w-full flex items-center justify-between p-4 bg-surface-container-lowest hover:bg-surface-container-low transition-colors active:bg-error-container">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-error text-xl">logout</span>
-              <span className="font-semibold text-error text-[15px]">Logout</span>
-            </div>
-          </button>
-          
+          <div className="p-4">
+            <button 
+                onClick={() => { logout(); navigate('/login'); }}
+                className="w-full flex items-center justify-center gap-2 p-4 font-bold text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors shadow-sm"
+            >
+                <LogOut className="w-5 h-5" /> {t('common.logout') || 'Logout'}
+            </button>
+          </div>
         </div>
 
       </div>

@@ -42,9 +42,12 @@ export default function ProfileSetup() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+  const [hasProfile, setHasProfile] = useState(false);
+
   React.useEffect(() => {
     api.get('/artisans/me').then(res => {
       if (res.data) {
+        setHasProfile(true);
         setFormData({
           artisan_name: res.data.artisan_name || '',
           business_name: res.data.business_name || '',
@@ -77,7 +80,12 @@ export default function ProfileSetup() {
     setLoading(true);
     try {
       const payload = { ...formData, years_experience: formData.years_experience ? parseInt(formData.years_experience) : null };
-      await api.post('/artisans/me', payload);
+      
+      if (hasProfile) {
+        await api.put('/artisans/me', payload);
+      } else {
+        await api.post('/artisans/me', payload);
+      }
 
       if (photo) {
         const formDataObj = new FormData();
@@ -101,11 +109,16 @@ export default function ProfileSetup() {
       <div className="w-full space-y-6 pt-6 max-w-lg mx-auto">
         
         {/* Header */}
-        <div className="flex items-center space-x-4 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container rounded-full transition-colors text-on-surface">
-            <ArrowLeft size={24} />
+        <div className="flex items-center justify-between mb-4 px-2">
+          <div className="flex items-center space-x-4">
+            <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center hover:bg-surface-container rounded-full transition-colors text-on-surface">
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl font-bold text-on-surface">{t('profile.profile_setup')}</h1>
+          </div>
+          <button onClick={handleSubmit} disabled={loading} className="px-4 py-2 bg-primary text-on-primary rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors shadow-sm disabled:opacity-50">
+            {loading ? 'Saving...' : 'Update'}
           </button>
-          <h1 className="text-xl font-bold flex-1 text-on-surface">{t('profile.profile_setup')}</h1>
         </div>
 
         <div className="bg-surface-container-lowest rounded-[24px] shadow-sm p-6 border border-outline-variant/30">

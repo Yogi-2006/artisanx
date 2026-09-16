@@ -5,6 +5,8 @@ import { useProductStore } from '../../stores/productStore';
 import api from '../../lib/api';
 import ReadinessScore from './ReadinessScore';
 import { Button } from '../ui/Button';
+import ProductPassport from './ProductPassport';
+import { useAuthStore } from '../../stores/authStore';
 
 const Step7Publish = ({ t }: { t: any }) => {
     const { photos, catalogueData, pricingData, setStep, saveDraft, publishProduct, draftId } = useProductStore();
@@ -14,6 +16,8 @@ const Step7Publish = ({ t }: { t: any }) => {
     
     const [readiness, setReadiness] = useState<any>(null);
     const [loadingReadiness, setLoadingReadiness] = useState(true);
+    const [artisanProfile, setArtisanProfile] = useState<any>(null);
+    const { user } = useAuthStore();
 
     useEffect(() => {
         const initReadiness = async () => {
@@ -25,6 +29,13 @@ const Step7Publish = ({ t }: { t: any }) => {
                 if (currentDraftId) {
                     const { data } = await api.get(`/products/${currentDraftId}/readiness`);
                     setReadiness(data);
+                }
+                
+                try {
+                    const profileRes = await api.get('/artisans/me');
+                    setArtisanProfile(profileRes.data);
+                } catch (e) {
+                    console.log("No artisan profile found");
                 }
             } catch (error) {
                 console.error("Failed to fetch readiness", error);
@@ -65,6 +76,11 @@ const Step7Publish = ({ t }: { t: any }) => {
     };
 
     const handleFixItem = (field: string) => {
+        if (field === 'verification') {
+            navigate('/artisan/profile');
+            return;
+        }
+        
         const stepMapping: Record<string, number> = {
             main_image: 1,
             additional_images: 1,
@@ -78,8 +94,7 @@ const Step7Publish = ({ t }: { t: any }) => {
             moq: 5,
             lead_time_days: 5,
             dimensions: 3,
-            care_instructions: 3,
-            verification: 1 // Can't really fix verification in product setup, but it redirects them anyway
+            care_instructions: 3
         };
         const targetStep = stepMapping[field] || 3;
         setStep(targetStep);
@@ -126,27 +141,33 @@ const Step7Publish = ({ t }: { t: any }) => {
                 )}
             </div>
 
-            <div className="bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/30 mt-2 shadow-sm">
-                <div className="h-48 bg-surface-container-high relative">
-                    {photos.length > 0 ? (
-                        <img src={photos[0].image_url} alt="Preview" className="w-full h-full object-cover" />
-                    ) : (
-                        <div className="w-full h-full flex flex-col items-center justify-center text-on-surface-variant">
-                            <span className="material-symbols-outlined text-[32px] mb-2 opacity-50">hide_image</span>
-                            <span className="text-sm font-bold uppercase tracking-wider opacity-50">No Photo</span>
-                        </div>
-                    )}
-                    <div className="absolute bottom-3 right-3 bg-surface-container-lowest/90 backdrop-blur-sm px-3 py-1.5 rounded-xl shadow-sm border border-outline-variant/20">
-                        <span className="font-black text-on-surface">₹{pricingData.finalPrice.toFixed(2)}</span>
+            <div className="mt-4">
+                <h3 className="text-[11px] font-bold text-outline uppercase tracking-wider mb-2 px-1">Product Passport Preview</h3>
+                <div className="border-[4px] border-surface-container-highest rounded-[36px] overflow-hidden shadow-lg relative">
+                    <div className="absolute top-0 inset-x-0 h-6 bg-surface-container-highest z-10 flex justify-center items-center">
+                        <div className="w-16 h-1.5 bg-outline-variant/30 rounded-full"></div>
                     </div>
-                </div>
-                <div className="p-5">
-                    <div className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">category</span>
-                        {catalogueData?.category || 'Category'}
+                    <div className="pt-6 bg-surface max-h-[600px] overflow-y-auto no-scrollbar">
+                        <ProductPassport 
+                            passportData={{
+                                title: catalogueData?.title || 'Product Title',
+                                images: photos.length > 0 ? photos : [{ image_url: 'https://via.placeholder.com/400x400?text=No+Photo', is_main: true }],
+                                artisan_name: artisanProfile?.user?.display_name || user?.display_name || 'Artisan Name',
+                                artisan_story: artisanProfile?.bio || 'Artisan story will appear here once you complete your profile.',
+                                craft_location: artisanProfile?.location_city || 'Location',
+                                materials: catalogueData?.materials || 'N/A',
+                                care_instructions: catalogueData?.care_instructions || '',
+                                price: pricingData.finalPrice || 0,
+                                moq: catalogueData?.moq ? parseInt(String(catalogueData.moq)) : undefined,
+                                lead_time: catalogueData?.lead_time_days ? parseInt(String(catalogueData.lead_time_days)) : undefined,
+                                stock: catalogueData?.stock_quantity ? parseInt(String(catalogueData.stock_quantity)) : undefined,
+                                customisation_available: true,
+                                verification_status: artisanProfile?.verification_status || 'unverified'
+                            }}
+                            qrCodeUrl="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=preview"
+                            shareableUrl="#"
+                        />
                     </div>
-                    <h3 className="text-lg font-bold text-on-surface line-clamp-1 mb-1">{catalogueData?.title || 'Product Title'}</h3>
-                    <p className="text-sm text-on-surface-variant line-clamp-2 leading-relaxed">{catalogueData?.description || 'Product description will appear here...'}</p>
                 </div>
             </div>
 

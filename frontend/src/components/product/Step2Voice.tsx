@@ -129,9 +129,34 @@ const Step2Voice = ({ t, lang }: { t: any, lang: string }) => {
                     <h2 className="text-2xl font-bold text-on-surface mb-2">
                         {t.voiceTitle || "Tell us about your craft"}
                     </h2>
-                    <p className="text-sm text-on-surface-variant max-w-xs mb-6">
+                    <p className="text-sm text-on-surface-variant max-w-xs mb-4">
                         Speak naturally in your own language. No typing needed.
                     </p>
+
+                    <div className="bg-surface-container/50 w-full rounded-2xl p-4 mb-6 border border-outline-variant/30 text-left shadow-sm">
+                        <p className="text-sm font-bold text-on-surface mb-2 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[18px] text-primary">lightbulb</span>
+                            Ideas to include:
+                        </p>
+                        <ul className="text-sm text-on-surface-variant space-y-1.5 ml-1">
+                            <li className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 mt-1.5 flex-shrink-0"></span>
+                                Product name
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 mt-1.5 flex-shrink-0"></span>
+                                Materials used
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 mt-1.5 flex-shrink-0"></span>
+                                Size or dimensions
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 mt-1.5 flex-shrink-0"></span>
+                                What makes it special
+                            </li>
+                        </ul>
+                    </div>
 
                     {/* Glowing Interactive Mic Button */}
                     <div className="relative flex items-center justify-center my-4">

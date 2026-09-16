@@ -46,6 +46,7 @@ import ArtisanDirectory from './pages/facilitator/ArtisanDirectory';
 import ProductReviewQueue from './pages/facilitator/ProductReviewQueue';
 import FacilitatorProfile from './pages/facilitator/FacilitatorProfile';
 import NotificationsHub from './pages/facilitator/NotificationsHub';
+import FacilitatorEnquiries from './pages/facilitator/FacilitatorEnquiries';
 import GuideHandOverlay from './components/guide-hand/GuideHandOverlay';
 import { useTranslation } from 'react-i18next';
 import { AuthLayout } from './components/layout/AuthLayout';
@@ -138,6 +139,7 @@ function App() {
           <Route path="disputes" element={<DisputesList />} />
           <Route path="disputes/:id" element={<DisputeDetail />} />
           <Route path="orders" element={<FacilitatorOrders />} />
+          <Route path="enquiries" element={<FacilitatorEnquiries />} />
           <Route path="activity" element={<ActivityLog />} />
         </Route>
 

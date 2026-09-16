@@ -78,7 +78,7 @@ export default function MessagingUI({ enquiryId, currentUserId }: { enquiryId: s
     };
 
     return (
-        <div className="bg-surface rounded-2xl flex flex-col h-[500px] shadow-sm border border-outline-variant overflow-hidden">
+        <div className="bg-surface rounded-2xl flex flex-col h-[350px] shadow-sm border border-outline-variant overflow-hidden">
             <div className="bg-surface-container-high px-4 py-3 flex items-center gap-2 border-b border-outline-variant">
                 <MessageCircle className="w-5 h-5 text-primary" />
                 <h3 className="font-bold text-on-surface">Conversation</h3>

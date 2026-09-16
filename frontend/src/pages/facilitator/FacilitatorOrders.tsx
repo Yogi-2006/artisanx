@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Clock, Package } from 'lucide-react';
+import { ArrowLeft, Clock, Package, XCircle, AlertTriangle } from 'lucide-react';
 import api from '../../lib/api';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -99,6 +99,68 @@ export default function FacilitatorOrders() {
                   </div>
                   <div className="text-sm text-stone-600">
                     Expected Dispatch: {new Date(order.expected_dispatch_date).toLocaleDateString()}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Cancellation Requests */}
+        <section>
+          <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2 text-orange-600">
+            <XCircle className="w-5 h-5" /> {t('facilitator.cancellation_requests') || 'Cancellation Requests'} ({orders.cancellation_requests?.length || 0})
+          </h2>
+          <div className="space-y-4">
+            {(!orders.cancellation_requests || orders.cancellation_requests.length === 0) ? (
+              <div className="bg-surface p-6 rounded-3xl border border-outline-variant text-center text-stone-500">
+                No cancellation requests.
+              </div>
+            ) : (
+              orders.cancellation_requests.map((order: any) => (
+                <div key={order.id} className="bg-surface p-4 rounded-3xl shadow-sm border border-orange-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-bold text-stone-800">Order #{order.id.slice(0, 8)}</div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 uppercase">
+                      Cancellation Requested
+                    </span>
+                  </div>
+                  <div className="text-sm text-stone-600 mb-1">
+                    <span className="font-semibold">Artisan:</span> {order.artisan?.display_name || 'Unknown'}
+                  </div>
+                  <div className="text-sm text-stone-600">
+                    <span className="font-semibold">Buyer:</span> {order.buyer?.display_name || 'Unknown'}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* Disputed Orders */}
+        <section>
+          <h2 className="text-xl font-bold text-stone-800 mb-4 flex items-center gap-2 text-purple-600">
+            <AlertTriangle className="w-5 h-5" /> {t('facilitator.disputed_orders') || 'Disputed Orders'} ({orders.disputed_orders?.length || 0})
+          </h2>
+          <div className="space-y-4">
+            {(!orders.disputed_orders || orders.disputed_orders.length === 0) ? (
+              <div className="bg-surface p-6 rounded-3xl border border-outline-variant text-center text-stone-500">
+                No disputed orders.
+              </div>
+            ) : (
+              orders.disputed_orders.map((order: any) => (
+                <div key={order.id} className="bg-surface p-4 rounded-3xl shadow-sm border border-purple-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="font-bold text-stone-800">Order #{order.id.slice(0, 8)}</div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 uppercase">
+                      Disputed
+                    </span>
+                  </div>
+                  <div className="text-sm text-stone-600 mb-1">
+                    <span className="font-semibold">Artisan:</span> {order.artisan?.display_name || 'Unknown'}
+                  </div>
+                  <div className="text-sm text-stone-600">
+                    <span className="font-semibold">Buyer:</span> {order.buyer?.display_name || 'Unknown'}
                   </div>
                 </div>
               ))

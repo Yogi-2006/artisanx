@@ -6,8 +6,8 @@ export default function ProductCard({ product }: { product: any }) {
   const { t } = useTranslation();
     return (
         <Link to={`/product/${product.id}`} className="group h-full flex flex-col">
-            <div className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-outline-variant transition-all group-hover:shadow-md group-hover:border-primary flex flex-col flex-1">
-                <div className="w-full aspect-[4/3] bg-stone-100 relative overflow-hidden shrink-0">
+            <div className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-outline-variant transition-all hover:shadow-md hover:border-primary flex flex-col h-full">
+                <div className="w-full aspect-square bg-stone-100 relative overflow-hidden shrink-0">
                     {product.main_image ? (
                         <img src={product.main_image} alt={product.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                     ) : (
@@ -15,20 +15,20 @@ export default function ProductCard({ product }: { product: any }) {
                     )}
                 </div>
                 <div className="p-4 flex flex-col flex-1">
-                    <h3 className="font-bold text-stone-800 line-clamp-2 min-h-[40px] leading-tight mb-2">{product.title || 'Untitled Product'}</h3>
-                    <div className="flex items-center justify-between mb-3 mt-auto">
+                    <h3 className="font-bold text-sm text-stone-800 line-clamp-2 min-h-[40px] leading-snug mb-2">{product.title || 'Untitled Product'}</h3>
+                    <div className="mb-3">
                         <span className="font-extrabold text-lg text-primary">₹{product.price || 0}</span>
                     </div>
-                    <div className="flex flex-col gap-1 text-xs text-stone-500 mt-auto pt-3 border-t border-stone-100">
-                        <span className="font-bold text-stone-700">{product.artisan_name || t('auth.artisan')}</span>
+                    <div className="flex flex-col gap-1.5 text-xs text-stone-500 mt-auto pt-3 border-t border-stone-100">
+                        <span className="font-bold text-stone-700 truncate">{product.artisan_name || t('auth.artisan')}</span>
                         {product.location && (
                             <div className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3 shrink-0" />
-                                <span className="line-clamp-1">{product.location}</span>
+                                <MapPin className="w-3.5 h-3.5 shrink-0" />
+                                <span className="truncate">{product.location}</span>
                             </div>
                         )}
                         {product.craft_type && (
-                            <span className="inline-block px-2 py-1 bg-stone-100 rounded font-bold text-stone-600 w-max mt-1">{product.craft_type}</span>
+                            <span className="inline-block px-2 py-1 bg-stone-100 rounded font-medium text-stone-600 w-max max-w-full truncate mt-1">{product.craft_type}</span>
                         )}
                     </div>
                 </div>

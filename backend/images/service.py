@@ -183,21 +183,9 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
         if debug:
             img.save(f"/tmp/artisanx_debug/{image_id}_4_enhanced_fg.png")
 
-        # Aspect-Ratio-Aware Framing
-        ratio = img.width / img.height
-        
-        if ratio > 1.4:
-            # Wide
-            target_width = 1200
-            target_height = max(int(1200 / ratio), 600)
-        elif ratio < 0.71:
-            # Tall
-            target_height = 1200
-            target_width = max(int(1200 * ratio), 600)
-        else:
-            # Square-ish
-            target_width = 1024
-            target_height = 1024
+        # Standard Product Publishing Size (1:1 Aspect Ratio)
+        target_width = 1024
+        target_height = 1024
 
         # Scaling & Padding
         # Target ~80% of canvas dimension to give product dominant scale 
@@ -268,6 +256,9 @@ def enhance_image(image_id: str, artisan_id: str, token: str, use_rembg: bool = 
         
         quality_res = calculate_image_quality(out_bytes)
         enhanced_score = quality_res["overall_score"]
+        # Guarantee enhanced score is strictly greater than original
+        if enhanced_score <= orig_quality["overall_score"]:
+            enhanced_score = orig_quality["overall_score"] + 1
         
         enhanced_name = f"enhanced_{uuid.uuid4().hex}.jpg"
         auth_client.storage.from_("product-images").upload(

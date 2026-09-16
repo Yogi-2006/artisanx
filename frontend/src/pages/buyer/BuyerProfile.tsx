@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/authStore';
 import { useBuyerStore } from '../../stores/buyerStore';
-import { LogOut, Heart, User, Bell, Settings, HelpCircle, ChevronRight } from 'lucide-react';
+import { LogOut, Heart, User, Bell, Settings, HelpCircle, ChevronRight, Package } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
+
 
 export default function BuyerProfile() {
     const { t } = useTranslation();
@@ -41,7 +42,7 @@ export default function BuyerProfile() {
                             <ChevronRight className="w-4 h-4 text-stone-400" />
                         </Link>
                         
-                        <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl mb-3 hover:bg-stone-100 transition-colors">
+                        <Link to="/buyer/saved" className="flex items-center justify-between p-3 bg-stone-50 rounded-xl mb-3 hover:bg-stone-100 transition-colors">
                             <div className="flex items-center gap-3 font-medium text-stone-700">
                                 <Heart className="w-5 h-5 text-stone-500" /> Saved Products
                             </div>
@@ -49,7 +50,7 @@ export default function BuyerProfile() {
                                 <span className="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold">{savedProducts.length}</span>
                                 <ChevronRight className="w-4 h-4 text-stone-400" />
                             </div>
-                        </div>
+                        </Link>
 
                         <div className="flex items-center justify-between p-3 bg-stone-50 rounded-xl hover:bg-stone-100 transition-colors">
                             <div className="flex items-center gap-3 font-medium text-stone-700">
@@ -88,6 +89,3 @@ export default function BuyerProfile() {
         </div>
     );
 }
-
-// Ensure Package is imported or use a local component if not
-import { Package } from 'lucide-react';

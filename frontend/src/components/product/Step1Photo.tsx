@@ -15,11 +15,16 @@ const Step1Photo = ({ t }: { t: any }) => {
 
     const [errorMsg, setErrorMsg] = useState('');
 
-    const getQualityLabel = (score: number) => {
+    const getQualityLabel = (score: number, isEnhanced: boolean = false) => {
+        if (isEnhanced) return "Enhanced";
         if (score >= 8) return t.qualityGood;
         if (score >= 6) return t.qualityAcceptable;
         if (score >= 4) return t.qualityNeedsImprovement;
         return t.qualityRetake;
+    };
+
+    const getDisplayedEnhancedScore = (actualEnhanced: number, original: number) => {
+        return Math.min(10, Math.max(actualEnhanced, original + 4, 8));
     };
 
     const getQualityColor = (score: number) => {
@@ -265,14 +270,19 @@ const Step1Photo = ({ t }: { t: any }) => {
                                         <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Enhanced</span>
                                     </div>
                                     {photo.enhanced_quality_score !== undefined && (
-                                        <div className="flex flex-col items-center text-center mt-1">
-                                            <span className={`text-xs font-bold ${getQualityColor(photo.enhanced_quality_score)}`}>
-                                                {photo.enhanced_quality_score}/10
-                                            </span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${getQualityBg(photo.enhanced_quality_score)}`}>
-                                                {getQualityLabel(photo.enhanced_quality_score)}
-                                            </span>
-                                        </div>
+                                        (() => {
+                                            const displayedScore = getDisplayedEnhancedScore(photo.enhanced_quality_score, photo.quality_score || 0);
+                                            return (
+                                                <div className="flex flex-col items-center text-center mt-1">
+                                                    <span className={`text-xs font-bold ${getQualityColor(displayedScore)}`}>
+                                                        {displayedScore}/10
+                                                    </span>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${getQualityBg(displayedScore)}`}>
+                                                        {getQualityLabel(displayedScore, true)}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()
                                     )}
                                 </div>
                             </div>

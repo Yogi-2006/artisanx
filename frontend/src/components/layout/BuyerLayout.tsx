@@ -5,7 +5,7 @@ import { Home, Compass, MessageSquare, Package, User } from 'lucide-react';
 export function BuyerLayout() {
   return (
     <MobileShell>
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-20">
         <Outlet />
       </div>
       <div className="fixed bottom-0 left-0 right-0 mobile-shell-width bg-surface border-t border-outline-variant px-6 py-3 flex justify-between items-center z-50 safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
